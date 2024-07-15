@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_splash"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:background="@color/backgroundcolor"
+    tools:context=".SplashPage">
+
+    <!--  启动页面进入主界面按钮  -->
+    <!--    <LinearLayout-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_alignParentRight="true"-->
+    <!--        android:layout_alignParentBottom="true"-->
+    <!--        android:layout_marginRight="10dp"-->
+    <!--        android:layout_marginBottom="50dp"-->
+    <!--        android:orientation="vertical">-->
+
+    <!--        <Button-->
+    <!--            android:id="@+id/enterBtn"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_weight="1"-->
+
+    <!--            android:background="@drawable/rounded_button"-->
+    <!--            android:text="进入"-->
+    <!--            android:textColor="@color/black"-->
+    <!--            android:textSize="25dp" />-->
+    <!--    </LinearLayout>-->
+
+    <!--  启动页面的跳转倒计时  -->
+
+    <!--    <LinearLayout-->
+    <!--        android:id="@+id/linearLayout1"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_alignParentRight="true"-->
+    <!--        android:layout_marginRight="10dp"-->
+    <!--        android:layout_marginTop="20dp">-->
+
+    <!--        <TextView-->
+    <!--            android:id="@+id/countdown_time"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="match_parent"-->
+    <!--            android:gravity="center"-->
+    <!--            android:text="1s"-->
+    <!--            android:textColor="@color/black"-->
+    <!--            android:textSize="30dp" />-->
+
+    <!--    </LinearLayout>-->
+
+    <TextView
+        android:id="@+id/content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/APPname"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="简单的软件介绍"
+        android:textColor="@color/black"
+        android:textSize="25dp" />
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="100dp"
+        app:srcCompat="@drawable/aaist" />
+
+    <TextView
+        android:id="@+id/APPname"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:layout_below="@id/logo"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center|center_vertical"
+        android:gravity="center_horizontal|center_vertical"
+        android:text="@string/app_name"
+        android:textColor="@color/black"
+        android:textSize="30dp" />
+
+
+</RelativeLayout>

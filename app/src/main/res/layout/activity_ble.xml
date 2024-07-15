@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ble"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/light_gray"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <!--标题栏-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
+    </LinearLayout>
+
+    <!--蓝牙搜索打开-->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_margin="10dp"
+        android:background="@drawable/bac_white_corners">
+
+        <LinearLayout
+            android:id="@+id/bluetooth_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|left"
+                android:src="@mipmap/icon_bluetooth" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_gravity="center"
+                android:text="@string/search_device"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/st_main_blue"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center"
+            android:layout_marginEnd="15dp"
+            android:showText="false"
+            android:splitTrack="false" />
+    </RelativeLayout>
+
+    <!--数据发送、接收展示窗口-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/bac_white_corners"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_main_receive"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:layout_margin="15dp"
+            android:background="@null"
+            android:gravity="center_vertical"
+            android:hint="@string/receive_data"
+            android:textColor="@color/gray"
+            android:textSize="16sp" />
+<!--                <EditText-->
+<!--                    android:id="@+id/et_main_send"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="30dp"-->
+<!--                    android:layout_marginLeft="15dp"-->
+<!--                    android:layout_marginRight="15dp"-->
+<!--                    android:layout_marginBottom="15dp"-->
+<!--                    android:background="@null"-->
+<!--                    android:gravity="center_vertical"-->
+<!--                    android:hint="@string/send_data"-->
+<!--                    android:textColor="@color/gray"-->
+<!--                    android:textSize="16sp" />-->
+    </LinearLayout>
+
+    <!--标记连接状态以及MAC地址-->
+
+        <TextView
+            android:id="@+id/status_marker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="20dp"
+            android:text="@string/status_flag"
+            android:textColor="@color/gray"
+            android:textSize="12sp" />
+
+    <!--断开连接-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="10dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bac_white_corners"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="2dp"
+            android:src="@mipmap/icon_disconnect" />
+
+        <Button
+            android:id="@+id/button_disconnect"
+            android:layout_width="364dp"
+            android:layout_height="60dp"
+            android:background="@null"
+            android:text="@string/disconnect"
+            android:textAlignment="textStart"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <!--    &lt;!&ndash;发送数据&ndash;&gt;-->
+    <!--    <LinearLayout-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="50dp"-->
+    <!--        android:layout_marginLeft="10dp"-->
+    <!--        android:layout_marginTop="10dp"-->
+    <!--        android:layout_marginRight="10dp"-->
+    <!--        android:background="@drawable/bac_white_corners"-->
+    <!--        android:orientation="horizontal">-->
+
+    <!--        <ImageView-->
+    <!--            android:layout_width="20dp"-->
+    <!--            android:layout_height="20dp"-->
+    <!--            android:layout_gravity="center_vertical"-->
+    <!--            android:layout_marginStart="15dp"-->
+    <!--            android:src="@mipmap/icon_send" />-->
+
+    <!--        <Button-->
+    <!--            android:id="@+id/btn_main_send"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_gravity="center_vertical"-->
+    <!--            android:background="@null"-->
+    <!--            android:text="@string/send_data"-->
+    <!--            android:textColor="@color/black"-->
+    <!--            android:textSize="16sp" />-->
+
+    <!--    </LinearLayout>-->
+
+    <!--加载图标-->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:text="@string/available_equipment"
+        android:textColor="@color/gray"
+        android:textSize="12sp" />
+
+    <!--扫描蓝牙设备列表-->
+    <ListView
+        android:id="@+id/discover_device_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/bac_white_corners"
+        android:listSelector="@android:color/transparent" />
+
+</LinearLayout>

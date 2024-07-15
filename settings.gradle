@@ -1,0 +1,35 @@
+/**修改日志
+ * 1.20240707测试python时注释掉了maven链接，目前并不会导致python运行报错，
+ * 并且也成功的在build--python--pip--中安装了对应的库。原版本中只保留了pluginManagement中的https://chaquo.com/maven"
+ * 其余均为自己之前加的，后续可以删除
+ * 2.
+ * **/
+pluginManagement {
+    repositories {
+//        maven { url 'https://maven.aliyun.com/repository/public/' }
+//        maven { url 'https://maven.aliyun.com/repository/google/' }
+//        maven { url 'https://maven.aliyun.com/repository/jcenter/' }
+//        maven { url 'https://maven.aliyun.com/repository/central/' }
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+
+//        maven { url "https://chaquo.com/maven" }
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+//        maven { url 'https://maven.aliyun.com/repository/public/' }
+//        maven { url 'https://maven.aliyun.com/repository/google/' }
+//        maven { url 'https://maven.aliyun.com/repository/jcenter/' }
+//        maven { url 'https://maven.aliyun.com/repository/central/' }
+        google()
+        mavenCentral()
+
+//        maven { url 'https://jitpack.io'}
+//        maven { url "https://chaquo.com/maven" }
+    }
+}
+rootProject.name = "AAISTSensorYb"
+include ':app'

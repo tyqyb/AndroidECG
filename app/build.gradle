@@ -1,0 +1,120 @@
+/**修改日志
+ * 1.20240706参考https://github.com/chaquo/chaquopy/tree/master/demo
+ * 项目对应用chaquo进行了build.gradle和setting的修改，dependencies内的注释目前不能删除，涉及到后续的navigation，可考虑按提示操作修改
+ * 其余涉及到chaquopy、python、pip中的 注释可以删除。加入kotlin插件是因为java使用chaquo下载库目前会报错，不知为何
+ * 2.
+ *
+ * **/
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.chaquo.python'
+}
+
+//apply plugin: 'com.chaquo.python'
+
+
+android {
+    namespace 'USTB.AAIST'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "USTB.AAIST"
+        minSdk 23//原21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+        ndk {
+            // 指定abi，如需在模拟器调试，增加"x86"，否则指定"armeabi-v7a"即可
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
+        python {
+            pip {
+                install "matplotlib"
+                install "numpy"
+                install "scipy"
+//                install "math"
+            }
+        }
+
+//        chaquopy {
+//            defaultConfig {
+//                buildPython("E:/IDE/Env/Python3.8/install/python.exe", "-3.8")
+//
+//                pip {
+//                    //镜像加速
+//                    options "--extra-index-url", "https://pypi.tuna.tsinghua.edu.cn/simple/"
+//                    install "scipy"
+//                    install "numpy"
+//                    install "math"
+//                    install "random"
+//                    install "requests==2.24.0"
+//                }
+//            }
+//        }
+
+//        python {
+//            version "3.8"
+//            buildPython "E:\\IDE\\Env\\Python3.8\\install\\python.exe"
+//            pip {
+//                //镜像加速
+//                options "--extra-index-url", "https://pypi.tuna.tsinghua.edu.cn/simple/"
+//                install "scipy"
+//                install "numpy"
+//                install "math"
+//                install "random"
+//                install "requests==2.24.0"
+//            }
+//        }
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets {
+        main{
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildToolsVersion '34.0.0'
+
+    buildFeatures {
+        viewBinding = true
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation files('libs/dsp-collection.jar')
+    implementation files('libs/Msc.jar')
+//    implementation 'androidx.navigation:navigation-fragment:2.6.0'
+//    implementation 'androidx.navigation:navigation-ui:2.6.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+//    implementation 'org.kivy:kivy-android:master'
+    implementation 'com.chaquo.python.runtime:chaquopy:15.0.1'
+
+
+
+}

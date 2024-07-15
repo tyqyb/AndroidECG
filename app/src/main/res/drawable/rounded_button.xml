@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--按钮圆角样式,在布局XML文件中，找到想设置圆角的Button，添加android:background 属性-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+<item>
+    <shape android:shape="rectangle">
+        <corners android:radius="20dp"/>
+            <solid android:color="@color/button_radius"/>
+            <stroke android:width="2dp" android:color="@color/button_radius_border"/>
+    </shape>
+</item>
+</selector>
