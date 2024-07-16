@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- 使用蓝牙的权限 -->
+    <!-- 蓝牙权限 -->
     <uses-permission android:name="android.permission.BLUETOOTH" /> <!-- 扫描蓝牙设备或者操作蓝牙设置 -->
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" /> <!-- 模糊定位权限，6.0+，本项目8.0 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- 精准定位权限，6.0+，本项目8.0-->
@@ -106,16 +106,17 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="false">
+            android:exported="false"
+            android:theme="@style/Theme.MainPage">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
 
-
         <activity
             android:name=".SplashPage"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.SplashPage">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -125,11 +126,5 @@
                 android:value="" />
         </activity>
 
-
-
-
-
-
     </application>
-
 </manifest>

@@ -11,17 +11,14 @@ public class MyView  extends View {
     public MyView(Context context) {
         super(context);
     }
-
     public MyView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
     private int getMySize(int defaultSize, int measureSpec) {
         int mySize = defaultSize;
-
         int mode = MeasureSpec.getMode(measureSpec);
         int size = MeasureSpec.getSize(measureSpec);
-
         switch (mode) {
             case MeasureSpec.UNSPECIFIED: {//如果没有指定大小，就设置为默认大小
                 mySize = defaultSize;
@@ -44,13 +41,9 @@ public class MyView  extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width = getMySize(100, widthMeasureSpec);
         int height = getMySize(100, heightMeasureSpec);
-
         if (width < height) {
             height = width;
-        } else {
-            width = height;
-        }
-
+        } else {width = height;}
         setMeasuredDimension(width, height);
     }
 

@@ -10,11 +10,11 @@ import java.util.ArrayList;
 
 import USTB.AAIST.utils.dsp.Filtfilt;
 import USTB.AAIST.view.RespiratoryView;
-import USTB.AAIST.view.Respiratory_AllData_View;
+import USTB.AAIST.view.RespiratoryAllDataView;
 
 
 public class OfflineRespiratoryActivity extends AppCompatActivity {
-    private Respiratory_AllData_View Respiratory_allData_View;
+    private RespiratoryAllDataView Respiratory_allData_View;
     private RespiratoryView Respiratory_View_offline;
 
     private ArrayList<Double> cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN;

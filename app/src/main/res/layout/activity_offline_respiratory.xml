@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-        <USTB.AAIST.view.Respiratory_AllData_View
+        <USTB.AAIST.view.RespiratoryAllDataView
             android:id="@+id/respiratory_allData_view"
             android:layout_width="0dp"
             android:layout_height="40dp"

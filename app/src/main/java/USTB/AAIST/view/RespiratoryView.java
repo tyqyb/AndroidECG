@@ -39,13 +39,10 @@ public class RespiratoryView extends View {
 
     public RespiratoryView(Context context, AttributeSet attrs){
         super(context,attrs);
-        //背景色
-        this.setBackgroundColor(getResources().getColor(R.color.white));
+        this.setBackgroundColor(getResources().getColor(R.color.white));//白色背景
     }
-
     public RespiratoryView(Context context){
         super(context);
-        //背景色
         this.setBackgroundColor(getResources().getColor(R.color.white));
     }
 
@@ -67,13 +64,13 @@ public class RespiratoryView extends View {
             rect_gap_x = (float) width/data_num/10;
             rect_width = (float) width * width/(gap_x * data_num);
             multiple_for_rect_width = (float) width/rect_width;
-            Log.e("json","本页面宽： " + width +"  高:" + height);
-            Log.e("json","两点间横坐标间距:" + gap_x + "   矩形区域两点间横坐标间距：" + rect_gap_x);
+//            Log.e("json","本页面宽： " + width +"  高:" + height);
+//            Log.e("json","两点间横坐标间距:" + gap_x + "   矩形区域两点间横坐标间距：" + rect_gap_x);
         }
-
         super.onLayout(changed, left, top, right, bottom);
     }
 
+/**绘图**/
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -81,18 +78,18 @@ public class RespiratoryView extends View {
         DrawECGWave(canvas);
     }
 
-    //画背景网格
+/**画背景网格**/
     private void DrawGrid(Canvas canvas){
         //横线
         for (int i = 1 ; i < grid_hori + 2 ; i ++){
             Paint paint = new Paint();
             paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(getResources().getColor(R.color.GridLineColor)); //<color name="data_pr">#0a7b14</color>
+            paint.setColor(getResources().getColor(R.color.GridLineColor));
             paint.setStrokeWidth(1.0f);
             Path path = new Path();
             path.moveTo(xori, gap_grid * (i-1) + (height-grid_hori*gap_grid)/2);
             path.lineTo(width,gap_grid * (i-1) + (height-grid_hori*gap_grid)/2);
-            if ( i % 5 != 0 ){//每第五条，为实线   其余为虚线 ，以下为画虚线方法
+            if ( i % 5 != 0 ){//每第五条为实线，其余为虚线，以下为画虚线方法
                 PathEffect effect = new DashPathEffect(new float[]{1,5},1);
                 paint.setPathEffect(effect);
             }
@@ -114,21 +111,22 @@ public class RespiratoryView extends View {
             canvas.drawPath(path,paint);
         }
     }
-    //画心电图
+
+/**画呼吸波**/
     private void DrawECGWave(Canvas canvas){
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(getResources().getColor(R.color.DrawViewBackgroundColor));//ECG背景色
+        paint.setColor(getResources().getColor(R.color.DrawViewBackgroundColor));//背景色
         paint.setStrokeWidth(2.0f);
         Path path = new Path();
         x_changed += x_change;
-        if (x_changed > xori){//防止向右滑动太多 超左边界
+        if (x_changed > xori){//防止向右滑动太多，超左边界
             x_changed = xori;
-        }else if (x_changed < offset_x_max ){//防止向左滑动太多 超右边界
+        }else if (x_changed < offset_x_max ){//防止向左滑动太多，超右边界
             x_changed = offset_x_max;
         }
-        //此处 xori设置为0 ，未用上
-        int iXor = 1;
+
+        int iXor = 1;//此处 iXor设置为0 ，未用上
         for (int i = 1 ; i < this.data_source.size() ; i ++){
             float nnn = xori + gap_x * i +  x_changed;
             if (nnn >= 0 ){
@@ -144,13 +142,12 @@ public class RespiratoryView extends View {
                 path.lineTo(xori + gap_x * i +  x_changed , (float) getY_coordinate(data_source.get(i)));
             }
         }
-
         canvas.drawPath(path,paint);
 
-        // 绘制下方矩形区域 参数 canvas
+        //绘制下方矩形区域 参数 canvas
         Paint Rect_paint = new Paint();
         Rect_paint.setStyle(Paint.Style.FILL);
-        Rect_paint.setColor(getResources().getColor(R.color.greenlucency));
+        Rect_paint.setColor(getResources().getColor(R.color.black));
         Rect_paint.setStrokeWidth(1.0f);
         Path Rect_path = new Path();
         float rect_xori = (float) (0-x_changed)/multiple_for_rect_width;
@@ -161,15 +158,13 @@ public class RespiratoryView extends View {
         canvas.drawPath(Rect_path,Rect_paint);
     }
 
-    //滑动查看心电图，参数 event，@return
+/**滑动查看心电图，参数 event，@return**/
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 startX=event.getX();
                 break;
-
             case MotionEvent.ACTION_MOVE:
                 x_change = event.getX()-startX;
                 invalidate();
@@ -177,19 +172,19 @@ public class RespiratoryView extends View {
         }
             return true;
     }
-    //将数值转换为y坐标，中间大的显示心电图的区域
+
+/**将数值转换为y坐标**/
     private double getY_coordinate(double data){
         Double y_int = data;
         y_int = (y_int);
         Double y_coor = Double.valueOf(0.0f);
         y_coor = y_int *7000 + y_center;
-
         return y_coor;
     }
-    //暴露接口，设置数据源
+
+/**暴露接口，设置数据源**/
     public void setData(ArrayList<Double> data){
         this.data_source = data;
         invalidate();
     }
-
 }

@@ -6,12 +6,10 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
 import android.view.View;
-
 import java.util.ArrayList;
-
 import USTB.AAIST.R;
 
-public class Respiratory_AllData_View extends View {
+public class ECGAllDataView extends View {
 
     private int width,height;//本页面宽，高
     private ArrayList<Double> data_source;
@@ -19,18 +17,16 @@ public class Respiratory_AllData_View extends View {
     private float rect_gap_x;//下方矩形区域心电图数据间的横坐标间隙
     private float rectY_center;//下方矩形区域心电图的中心Y值
 
-    public Respiratory_AllData_View(Context context, AttributeSet attrs){
+    public ECGAllDataView(Context context, AttributeSet attrs){
         super(context,attrs);
-        //背景色 透明
-        this.setBackgroundColor(getResources().getColor(R.color.trans));
+        this.setBackgroundColor(getResources().getColor(R.color.trans));//透明背景色
     }
-
-    public Respiratory_AllData_View(Context context){
+    public ECGAllDataView(Context context){
         super(context);
-        //背景色 透明
-        this.setBackgroundColor(getResources().getColor(R.color.trans));
+        this.setBackgroundColor(getResources().getColor(R.color.trans));//透明背景色
     }
 
+/**获取View的页面宽度高度以及小网格的宽度、基线位置y坐标值**/
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         if (changed){
@@ -49,35 +45,34 @@ public class Respiratory_AllData_View extends View {
         super.onDraw(canvas);
         DrawAllData(canvas);
     }
-//画下方矩形区域的心电图
+
+/**画下方矩形区域的心电图**/
     private void DrawAllData(Canvas canvas){
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(getResources().getColor(R.color.black));
+        paint.setColor(getResources().getColor(R.color.DrawLineColor));
         paint.setStrokeWidth(1.0f);
         Path path = new Path();
 
-        path.moveTo((float) 0, (float) getRectY_coordinate(data_source.get(0)));
+        path.moveTo(0, getRectY_coordinate(data_source.get(0)));
 
         for (int i = 1 ; i < this.data_source.size() ; i ++){
-            path.lineTo(rect_gap_x * i, (float) getRectY_coordinate(data_source.get(i)));
+            path.lineTo(rect_gap_x * i,getRectY_coordinate(data_source.get(i)));
         }
         canvas.drawPath(path,paint);
     }
-//将数值转换为y坐标，下方矩形 显示心电图的区域
-    private double getRectY_coordinate(double data){
-        double y_int = data;
-        y_int = (y_int - 2048) *(-1);
-        double y_coor = 0.0f;
-
-        y_coor = y_int/8 + rectY_center;
+/**将数值转换为y坐标，下方矩形 显示心电图的区域**/
+    private float getRectY_coordinate(Double data){
+        double y_int = (data - 2048) * (-1);
+        float y_coor = 0.0f;
+        y_coor = (float) (y_int/8 + rectY_center);
 //        Log.v("json","<rectY_center> " + rectY_center + " < y_coor >" + y_coor +"  height:" + height +" rect_hight " + rect_high);
-        System.out.println("y_coor:"+y_coor/6);
-        return y_coor/2;
+        return y_coor;
     }
 
-//暴露接口，设置数据源
+/**暴露接口，设置数据源**/
     public void setData(ArrayList<Double> data){
+        System.out.println("暴露接口:"+data.toString());
         this.data_source = data;
     }
 }

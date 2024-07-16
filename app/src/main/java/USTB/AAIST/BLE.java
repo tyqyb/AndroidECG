@@ -93,9 +93,10 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ble);
 
-        mTvState = findViewById(R.id.status_marker);
-        mTvReceive = findViewById(R.id.tv_main_receive);
-        mTvReceive.setMovementMethod(ScrollingMovementMethod.getInstance());
+        //20240715注释以下三行，删除掉了接收数据并显示的框，即mTvReceive
+//        mTvState = findViewById(R.id.status_marker);
+//        mTvReceive = findViewById(R.id.tv_main_receive);
+//        mTvReceive.setMovementMethod(ScrollingMovementMethod.getInstance());
         SwitchCompat btSwitch = findViewById(R.id.st_main_blue);
         Button btnDisConnect = findViewById(R.id.button_disconnect);
         ListView listView = findViewById(R.id.discover_device_list);
@@ -404,7 +405,7 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mTvReceive.setText(DataFormatUtil.arrayToHex(value));
+//                    mTvReceive.setText(DataFormatUtil.arrayToHex(value));//20240715注释
                 }
             });
             //蓝牙接受到的原始16进制HEX格式信号   蓝牙发送过来的数据:C9 7E BF 7E BC 7E CF 7E DD 7E EB 7E F9 7E 00 7F FF 7E。。。。。。。。。。。

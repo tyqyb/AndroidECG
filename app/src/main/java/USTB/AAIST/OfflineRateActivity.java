@@ -7,12 +7,12 @@ import android.os.Bundle;
 
 import java.util.ArrayList;
 
-import USTB.AAIST.view.ECG_allData_View;
+import USTB.AAIST.view.ECGAllDataView;
 import USTB.AAIST.view.WH_ECGView;
 
 public class OfflineRateActivity extends AppCompatActivity {
     private WH_ECGView ecgView;
-    private ECG_allData_View allData_view;
+    private ECGAllDataView allData_view;
     //原始信号
     private  ArrayList<Double> orginate_data_source;
     //滤波信号
@@ -23,7 +23,7 @@ public class OfflineRateActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_offline_rate);
         ecgView = (WH_ECGView)findViewById(R.id.ecg_data_ecgView);
-        allData_view = (ECG_allData_View)findViewById(R.id.allData_ecgView);
+        allData_view = (ECGAllDataView)findViewById(R.id.allData_ecgView);
         Intent intent = getIntent();
         if ("action".equals(intent.getAction())) {
             data_source = (ArrayList<Double>) intent.getSerializableExtra("offline_ratedata");

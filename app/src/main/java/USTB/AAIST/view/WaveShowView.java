@@ -208,7 +208,7 @@ public  class  WaveShowView extends View {
         invalidate();
     }
 
-    //重置折现的坐标集合
+/**重置折线的坐标集合**/
     public void resetCanavas() {
         refreshList.clear();
     }

@@ -77,7 +77,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\yangb\.android\avd\YPixel_2_API_34.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=ACTH023117001459)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -166,6 +166,9 @@
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "android-custom-viewD:/AndroidStudio/AndroidSDK/sources/android-34/android/widget/LinearLayout.java_SELECTED": "LinearLayout",
+    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_SELECTED": "RespiratoryView",
+    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_SELECTED": "Respiratory_Wave",
+    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_SELECTED": "WH_ECGView",
     "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/ECG_allData_View.java_SELECTED": "ECG_allData_View",
     "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Ecg_View.java_SELECTED": "Ecg_View",
     "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/MyView.java_SELECTED": "MyView",
@@ -191,6 +194,18 @@
     "settings.editor.splitter.proportion": "0.19275825"
   },
   "keyToStringList": {
+    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_RespiratoryView_DIMENSIONS": [
+      "1080",
+      "1920"
+    ],
+    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_Respiratory_Wave_DIMENSIONS": [
+      "1080",
+      "1920"
+    ],
+    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_WH_ECGView_DIMENSIONS": [
+      "1080",
+      "1920"
+    ],
     "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/ECG_allData_View.java_ECG_allData_View_DIMENSIONS": [
       "1080",
       "1920"

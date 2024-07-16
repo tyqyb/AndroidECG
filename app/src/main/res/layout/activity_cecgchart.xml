@@ -22,7 +22,7 @@
         <LinearLayout
             android:layout_width="550dp"
             android:layout_height="match_parent"
-            android:background="@color/light_gray">
+            android:background="@color/GrayBackgroundColor">
 
             <USTB.AAIST.view.Wave
                 android:id="@+id/waveShowView"
@@ -69,7 +69,7 @@
                         android:layout_gravity="center"
                         android:text="— —"
                         android:textAlignment="center"
-                        android:textColor="@color/cECG_Chart_Color"
+                        android:textColor="@color/ChartTxtColor"
                         android:textSize="50dp" />
                 </LinearLayout>
 

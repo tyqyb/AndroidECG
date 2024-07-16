@@ -87,7 +87,7 @@ public class WH_ECGView extends View {
         for (int i = 1 ; i < grid_hori + 2 ; i ++){
             Paint paint = new Paint();
             paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(getResources().getColor(R.color.GridLineColor)); //<color name="data_pr">#0a7b14</color>
+            paint.setColor(getResources().getColor(R.color.GridLineColor));
             paint.setStrokeWidth(1.0f);
             Path path = new Path();
             path.moveTo(xori, gap_grid * (i-1) + (height-grid_hori*gap_grid)/2);
@@ -152,7 +152,7 @@ public class WH_ECGView extends View {
 //绘制下方矩形区域 @param canvas
         Paint Rect_paint = new Paint();
         Rect_paint.setStyle(Paint.Style.FILL);
-        Rect_paint.setColor(getResources().getColor(R.color.greenlucency));
+        Rect_paint.setColor(getResources().getColor(R.color.black));
         Rect_paint.setStrokeWidth(1.0f);
         Path Rect_path = new Path();
         float rect_xori = (float) (0-x_changed)/multiple_for_rect_width;
