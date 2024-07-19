@@ -2,6 +2,7 @@
     <string name="app_name">传感APP</string>
 
     <string name="main_ECG">心电测量</string>
+    <string name="main_Spo2">血氧监测</string>
     <string name="main_oxygen">血氧脉搏监测</string>
     <string name="main_EEG">脑电测量</string>
     <string name="main_EMG">肌电测量</string>
@@ -14,6 +15,7 @@
     <string name="available_equipment">可用设备</string>
     <string name="data_sent_successfully">数据发送成功</string>
     <string name="connecting">正在连接</string>
+    <string name="connected">已连接</string>
     <string name="connection_succeeded">连接成功</string>
     <string name="connection_failed">连接失败</string>
     <string name="please_grant_app_permission">请授予应用权限</string>

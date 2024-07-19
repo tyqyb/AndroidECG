@@ -7,16 +7,23 @@
     android:background="@color/PrimaryBackgroundColor"
     tools:context=".ECGChart">
 
-    <!--    测量心电的界面-->
+    <!--测量心电的界面-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="240dp"
+        android:layout_height="270dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="18dp"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp">
+
+        <!--左边框-->
+        <View
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="1dp"
+            android:background="@drawable/shape" />
 
         <!--显示心电的可视化图像-->
         <LinearLayout
@@ -26,13 +33,11 @@
 
             <USTB.AAIST.view.Wave
                 android:id="@+id/waveShowView"
+                android:layout_margin="2dp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent" />
         </LinearLayout>
 
-        <!--            <AAISTentWidthAndColorLineView-->
-        <!--                android:layout_width="2dp"-->
-        <!--                android:layout_height="match_parent" />-->
         <View
             android:layout_width="2dp"
             android:layout_height="match_parent"
@@ -42,38 +47,62 @@
         <LinearLayout
             android:layout_width="180dp"
             android:layout_height="match_parent"
-            android:divider="@color/black">
+            android:divider="@color/black"
+            android:orientation="vertical">
 
             <LinearLayout
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="start"
                 android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <androidx.cardview.widget.CardView
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
-                    android:text=" HeartRate"
-                    android:textColor="@color/black"
-                    android:textSize="30dp" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="50dp">
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5dp"
+                    app:cardBackgroundColor="@color/PredominantColor"
+                    app:cardCornerRadius="10dp">
 
                     <TextView
-                        android:id="@+id/txtECG"
+                        android:id="@+id/HR"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="— —"
+                        android:text="HR"
+                        android:textColor="@color/white"
+                        android:textSize="20dp" />
+
+                </androidx.cardview.widget.CardView>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:layout_gravity="center">
+
+                    <TextView
+                        android:id="@+id/txtECG"
+                        android:layout_width="75dp"
+                        android:layout_height="wrap_content"
+                        android:text="000"
+                        android:textAlignment="textEnd"
+                        android:textColor="@color/ChartTxtColor"
+                        android:textSize="30dp" />
+
+                    <TextView
+                        android:id="@+id/BMP"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:layout_gravity="center"
+                        android:text="BPM"
                         android:textAlignment="center"
                         android:textColor="@color/ChartTxtColor"
-                        android:textSize="50dp" />
+                        android:textSize="20dp" />
+
                 </LinearLayout>
 
-                <!--上行-->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -82,58 +111,62 @@
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:scaleType="fitStart"
-                            app:srcCompat="@drawable/up" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="10dp"
-                            android:text="120"
-                            android:textColor="@color/red"
-                            android:textSize="20dp" />
-                    </LinearLayout>
+                        android:orientation="horizontal" />
                 </LinearLayout>
-
-                <!--下行-->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="90dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:scaleType="fitStart"
-                            app:srcCompat="@drawable/down" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="10dp"
-                            android:text="50"
-                            android:textColor="@color/blue"
-                            android:textSize="20dp" />
-                    </LinearLayout>
-
-                </LinearLayout>
-
             </LinearLayout>
 
-        </LinearLayout>
+            <!--分割线-->
+            <View
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="2dp"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="#dfdfdf" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:orientation="vertical">
+
+                <Button
+                    android:layout_marginTop="20dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:id="@+id/disconnect"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@drawable/buttonshape"
+                    android:text="断开蓝牙"
+                    android:textSize="15dp"
+                    android:textColor="@color/white"/>
+
+                <Button
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:id="@+id/OfflineData"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@drawable/buttonshape"
+                    android:text="功能按钮"
+                    android:textSize="15dp"
+                    android:textColor="@color/white"/>
+
+                <Button
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:id="@+id/OfflineView"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@drawable/buttonshape"
+                    android:text="功能按钮"
+                    android:textSize="15dp"
+                    android:textColor="@color/white"/>
+
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
 

@@ -47,13 +47,4 @@
 <!--        <item name="android:textColor">@color/colorAccent</item>-->
     </style>
 
-<!--    <style name="MyActionBarStyle" parent="@android:style/Widget.Material.ActionBar.Solid">-->
-<!--        <item name="android:titleTextStyle">@style/MyTitleTextStyle</item>-->
-<!--    </style>-->
-
-<!--    <style name="MyTitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">-->
-<!--        <item name="android:textColor">@color/colorAccent</item>-->
-<!--        <item name="android:textSize">19sp</item>-->
-<!--    </style>-->
-
 </resources>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle" >
+    <!-- ECGChart视图右侧渐变竖线-->
     <solid android:color="#EDEFF1" />
     <size android:height="400dp" android:width="1dp"/>
     <!--渐变设置-->
@@ -9,6 +10,4 @@
         android:startColor="#ACACAC"
         android:angle="270"
         android:type="linear" />
-
-
 </shape>
