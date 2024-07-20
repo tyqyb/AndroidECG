@@ -115,7 +115,7 @@ public class ECGChart extends AppCompatActivity {
         getBleAddress();//接受蓝牙地址
         connectBluetooth(device);
 
-//         simulator();
+//         simulator();//模拟发送心电数据
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
             @Override
@@ -128,8 +128,6 @@ public class ECGChart extends AppCompatActivity {
         };
         handler.postDelayed(runnable, 7000);
     }
-
-
 
     /**初始化控件
      * @ mTvReceive，find id
@@ -186,26 +184,32 @@ public class ECGChart extends AppCompatActivity {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             //判断蓝牙是否连接成功
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                //发现设备服务 去获取服务
-                gatt.discoverServices();
+                gatt.discoverServices();//发现设备服务 去获取服务
+                Log.i("TAG", "在 ECGChart.Java onConnectionStateChange()函数中: 连接成功");
+
+/**后续可删除以下代码
+ * 主要功能：设置原状态标记功能的状态栏为已连接
+ */
 //                runOnUiThread(new Runnable() {
 //                    @Override
 //                    public void run() {
 //                        mTvState.setText(getString(R.string.connection_succeeded));//设置文本状态为“已连接”
 //                    }
 //                });
-                Log.i("TAG", "onConnectionStateChange: 连接成功");
-
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                //关闭回调服务（等于断开蓝牙连接）
-                mBtGatt.close();
+
+                mBtGatt.close();//关闭回调服务（等于断开蓝牙连接）
+                Log.i("TAG", "在 ECGChart.Java onConnectionStateChange()函数中: 连接失败");
+
+/**后续可删除以下代码
+ * 主要功能：设置原状态标记功能的状态栏为未连接
+ */
 //                runOnUiThread(new Runnable() {
 //                    @Override
 //                    public void run() {
 //                        mTvState.setText(getString(R.string.connection_failed));
 //                    }
 //                });
-                Log.i("TAG", "onConnectionStateChange: 连接失败");
             }
         }
 
@@ -304,8 +308,8 @@ public class ECGChart extends AppCompatActivity {
             //接受到的原始数据
             byte[] value = characteristic.getValue(); //value为设备发送的数据，根据数据协议进行解析。
 
-/**20240712
- * logcat输出检验是否正确的读到了数据，是没问题的    /可删除以下的验证代码
+/**开发完后可删除，于20240712添加的功能
+ * 主要功能：logcat输出检验是否正确的读到了数据，是没问题的
  * 添加的代码有：super.onCharacteristicChanged(gatt, characteristic);以及对应的两个private、if (value != null) 判断
  **/
             if (value != null) {//检验是否接收到了数据
@@ -319,11 +323,11 @@ public class ECGChart extends AppCompatActivity {
                     str = new String(value);
                 }
                 String strHex = arrayToHex(value);
-                Log.e("ble-receive", "读取成功[string]:" + str);
-                Log.e("ble-receive", "读取成功[hex]:" + strHex);
+                Log.e("DataReceiveCheck", "读取成功[string]:" + str);
+                Log.e("DataReceiveCheck", "读取成功[hex]:" + strHex);
             }
 
-            System.out.println(value);
+//            System.out.println(value);//打印value值，上面的打印代替了这句
 
             String str = arrayToHex(value);//字符串类型的数据
             HexOriginateHeartData+=str;//保存至txt所需的变量
@@ -384,7 +388,7 @@ public class ECGChart extends AppCompatActivity {
                 }
             });
 
-            /**呼吸波相关，通过python调用进行呼吸波的提取**/
+/**呼吸波相关，通过python调用进行呼吸波的提取**/
 //            RPdataQ.addAll(res);
 //            System.out.println("RPdataQ:"+RPdataQ.size());
 //
@@ -426,6 +430,7 @@ public class ECGChart extends AppCompatActivity {
 //            });
 
         }
+
     };
 
     /**触发返回按钮并断开蓝牙连接**/
@@ -434,7 +439,7 @@ public class ECGChart extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 mBtGatt.disconnect();
-                Log.i(TAG, "蓝牙连接状态: 断开蓝牙连接");
+                Log.i(TAG, "在ECGChart.Java中，蓝牙连接状态: 断开蓝牙连接");
             }
         }
         return super.onKeyDown(keyCode, event);
@@ -493,7 +498,7 @@ public class ECGChart extends AppCompatActivity {
                 dialog.setCanceledOnTouchOutside(true);//设置弹出框失去焦点是否隐藏,即点击屏蔽其它地方是否隐藏
                 dialog.show();
                 break;
-
+/**此段注释考虑是否将加入呼吸波的绘制而选择是否删除**/
 //            case R.id.offline_respiratory://离线呼吸波
 //                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
 //                    mBtGatt.disconnect();
@@ -522,17 +527,20 @@ public class ECGChart extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    /**模拟心电发送，心电数据是一秒500个包**/
-    private void simulator(){
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if(RPView.isRunning){
-                    if(RPdataQ.size() > 0){
-                        RPView.addRPData(RPdataQ.poll().floatValue());
-                    }
-                }
-            }
-        }, 0, 2);
-    }
+/**后续可删除
+ *主要功能：模拟心电数据发送连接的蓝牙，心电数据是一秒500个包
+ */
+//    private void simulator(){
+//        new Timer().schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                if(RPView.isRunning){
+//                    if(RPdataQ.size() > 0){
+//                        RPView.addRPData(RPdataQ.poll().floatValue());
+//                    }
+//                }
+//            }
+//        }, 0, 2);
+//    }
+
   }

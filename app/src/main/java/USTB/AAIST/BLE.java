@@ -57,20 +57,21 @@ import USTB.AAIST.utils.DataFormatUtil;
 import USTB.AAIST.utils.PermissionUtil;
 
 public class BLE extends AppCompatActivity implements View.OnClickListener {
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";//Logcat日志输出的标题
     private Context mContext;
     private BluetoothGatt mBtGatt;
     private BluetoothAdapter mBtAdapter;
     private DevicesAdapterList mDeviceAdapter;
     private BluetoothGattCharacteristic mWriteBtGattCharacteristic;
-    private final static String SERVICE_EIGENVALUE_SEND = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，发送
-    private final static String SERVICE_EIGENVALUE_READ = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，接收
     private BluetoothGattCharacteristic mNeedCharacteristic;
     private Handler mTimeHandler = new Handler();
     private final List<String> mDuplicateData = new ArrayList<>();//查重数组
     private final List<Devices> mDevices = new ArrayList<>();//设备名称、MAC地址
     private static boolean isGattSuccess = false;//服务回调状态标记符
     private final int mRequestCode = 0x01;//权限请求码
+
+    private final static String SERVICE_EIGENVALUE_SEND = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，发送
+    private final static String SERVICE_EIGENVALUE_READ = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，接收
 
     private EditText mEtMessage;
     private TextView mTvReceive, mTvState;
@@ -223,51 +224,58 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         }
     };
 
-    /**连接蓝牙 @param device  目标设备；@param context 上下文对象
-     * 在ECGChart中调用连接蓝牙，此处没有用到**/
-    @SuppressLint("MissingPermission")
-    private void connectBluetooth(BluetoothDevice device, Context context) {
-        Log.i(TAG, "在BLE.Java, connectBluetooth函数中: 关闭蓝牙搜索");
-        this.mContext = context;
-        mBtAdapter.stopLeScan(mBtLeScanCallback);//关闭蓝牙搜索，连接蓝牙之前关闭蓝牙搜索
-        //设置延迟，保证搜索完全关闭，再开始连接蓝牙。
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.i(TAG, "在BLE.Java,run函数中: 连接蓝牙");
-                mBtGatt = device.connectGatt(context, false, mBtGattCallback);//连接蓝牙：autoConnect（布尔值，指示是否在可用时自动连接到BLE设备）
-            }
-        }, 1000);
-    }
+/**后续对比考证可删除以下代码
+ * 主要功能：连接蓝牙 ，已经在ECGChart中调用连接蓝牙，此处没有用到
+ * 不同的是后者定义的函数没有context这一参数，没有this.mContext = context; 后续需要对比
+ * @param device  目标设备；@param context 上下文对象
+ */
+//    @SuppressLint("MissingPermission")
+//    private void connectBluetooth(BluetoothDevice device, Context context) {
+//        Log.i(TAG, "在BLE.Java, connectBluetooth函数中: 关闭蓝牙搜索");
+//        this.mContext = context;
+//        mBtAdapter.stopLeScan(mBtLeScanCallback);//关闭蓝牙搜索，连接蓝牙之前关闭蓝牙搜索
+//        //设置延迟，保证搜索完全关闭，再开始连接蓝牙。
+//        Handler handler = new Handler();
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.i(TAG, "在BLE.Java,run函数中: 连接蓝牙");
+//                mBtGatt = device.connectGatt(context, false, mBtGattCallback);//连接蓝牙：autoConnect（布尔值，指示是否在可用时自动连接到BLE设备）
+//            }
+//        }, 1000);
+//    }
 
     /**蓝牙服务回调，建立通信**/
     private final BluetoothGattCallback mBtGattCallback = new BluetoothGattCallback() {
+
+/**后续可删除以下代码
+ * 主要功能：实现特征服务的打印，已在ECGChart中调用
+ */
         //成功连接到设备调用此方法
-        @SuppressLint("MissingPermission")
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            //判断蓝牙是否连接成功
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                gatt.discoverServices();//发现设备服务 去获取服务
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mTvState.setText(getString(R.string.connection_succeeded));
-                    }
-                });
-                Log.i(TAG, "在BLE.Java，onConnectionStateChange中: 连接成功！");
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                mBtGatt.close();//关闭回调服务（等于断开蓝牙连接）
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mTvState.setText(getString(R.string.connection_failed));
-                    }
-                });
-                Log.i(TAG, "在BLE.Java，onConnectionStateChange中: : 连接失败！");
-            }
-        }
+//        @SuppressLint("MissingPermission")
+//        @Override
+//        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+//            //判断蓝牙是否连接成功
+//            if (newState == BluetoothProfile.STATE_CONNECTED) {
+//                gatt.discoverServices();//发现设备服务 去获取服务
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        mTvState.setText(getString(R.string.connection_succeeded));
+//                    }
+//                });
+//                Log.i(TAG, "在BLE.Java，onConnectionStateChange中: 连接成功！");
+//            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+//                mBtGatt.close();//关闭回调服务（等于断开蓝牙连接）
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        mTvState.setText(getString(R.string.connection_failed));
+//                    }
+//                });
+//                Log.i(TAG, "在BLE.Java，onConnectionStateChange中: : 连接失败！");
+//            }
+//        }
 
 //        /**发现服务，在设备连接成功后调用，扫描到设备服务后调用此方法。
 //         * 调用mBluetoothGatt.discoverServices();方法后，onServicesDiscovered（）这个方法会被调用，说明发现当前设备了。
@@ -383,15 +391,17 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
 
     };
 
-    /**发送数据 @param data 数据
-     * 后续可以删除该功能，是测试蓝牙收发数据的**/
-    @SuppressLint("MissingPermission")
-    private void sendMsg(String data) {
-        Log.i(TAG, "在BLE.Java，sendMsg函数中: 发送的数据:" + data);
-        mWriteBtGattCharacteristic.setValue(DataFormatUtil.arrayToHex(DataFormatUtil.stringToBytes(data))); //设置写入，setValue(发送的数据)
-        mWriteBtGattCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE); //设置写入特征UUID
-        mBtGatt.writeCharacteristic(mWriteBtGattCharacteristic); //向设备写入指令。
-    }
+/**后续可删除以下注释代码
+ * 主要功能：向APP连接的蓝牙发送数据
+ * @param data 数据
+ * */
+//    @SuppressLint("MissingPermission")
+//    private void sendMsg(String data) {
+//        Log.i(TAG, "在BLE.Java，sendMsg函数中: 发送的数据:" + data);
+//        mWriteBtGattCharacteristic.setValue(DataFormatUtil.arrayToHex(DataFormatUtil.stringToBytes(data))); //设置写入，setValue(发送的数据)
+//        mWriteBtGattCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE); //设置写入特征UUID
+//        mBtGatt.writeCharacteristic(mWriteBtGattCharacteristic); //向设备写入指令。
+//    }
 
     /**断开蓝牙连接   @param b 判断蓝牙服务回调是否成功（防止空对象异常）**/
     @SuppressLint("MissingPermission")

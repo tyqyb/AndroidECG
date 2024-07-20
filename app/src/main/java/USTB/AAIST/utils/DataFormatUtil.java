@@ -1,8 +1,7 @@
 package USTB.AAIST.utils;
-//数据转换工具类
+/**数据转换工具类**/
 import java.util.ArrayList;
 import java.util.List;
-
 import USTB.AAIST.utils.dsp.Filtfilt;
 
 public class DataFormatUtil {
@@ -35,7 +34,6 @@ public class DataFormatUtil {
             }else{
                 cECG_Wave_HighByte.add(x);
             }
-
         }
         for(int i=0;i<cECG_Wave_HighByte.size();i++){
             double  cECG_Raw_Wave_data = cECG_Wave_LowByte.get(i) + cECG_Wave_HighByte.get(i) *256;//%%两个高字节+低字节组成的一个数
@@ -137,10 +135,5 @@ public class DataFormatUtil {
 
         return cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN;
     }
-
-
-
-
-
 
 }
