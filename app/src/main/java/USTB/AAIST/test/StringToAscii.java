@@ -1,5 +1,5 @@
 package USTB.AAIST.test;
-
+/**字符串转 Ascii码，没用到**/
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +42,7 @@ public class StringToAscii {
     public static ArrayList<String> test(String args){
         ArrayList<String> data_arr = new ArrayList<String>();
 
-        Pattern p = Pattern.compile("\\d{3,}");//是指连续数字的最少个数为3
+        Pattern p = Pattern.compile("\\d{3,}");//连续数字的最少个数为3
         Matcher m = p.matcher(args);
         int i = 0;
         while (m.find()) {
@@ -53,5 +53,4 @@ public class StringToAscii {
 //        Log.v("json","****" + i + "  " + data_arr.toString());
         return data_arr;
     }
-
 }

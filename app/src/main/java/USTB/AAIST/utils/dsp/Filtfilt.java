@@ -1,17 +1,13 @@
 package USTB.AAIST.utils.dsp;
-
+//零相位滤波函数，调用static方法：doFiltfilt执行滤波
 import java.util.ArrayList;
-
-/**
- * 零相位滤波函数，调用static方法：doFiltfilt执行滤波
- */
-
 public class Filtfilt {
-    /**
+    /**说明
      * @ B  滤波器参数B
      * @ A  滤波器参数A
      * @ X  要滤波的数组 ： 要求是一维，长度要大于B数组。
      * @return 滤波后的结果 返回double数组。
+     * 输入的数组长度数据量至少是滤波器阶数的3倍
      */
     public static ArrayList<Double> doFiltfilt(ArrayList<Double> B,
                                                ArrayList<Double> A, ArrayList<Double> X) {

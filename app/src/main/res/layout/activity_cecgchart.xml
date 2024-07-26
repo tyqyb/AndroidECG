@@ -130,38 +130,38 @@
                 android:orientation="vertical">
 
                 <Button
+                    android:id="@+id/EcgChartView_disconnect"
                     android:layout_marginTop="20dp"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
-                    android:id="@+id/disconnect"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:background="@drawable/buttonshape"
-                    android:text="功能按钮"
+                    android:text="断开连接"
                     android:textSize="15dp"
                     android:textColor="@color/white"/>
 
                 <Button
-                    android:layout_marginTop="5dp"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
                     android:id="@+id/OfflineData"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:background="@drawable/buttonshape"
-                    android:text="功能按钮"
+                    android:text="离线数据"
                     android:textSize="15dp"
                     android:textColor="@color/white"/>
 
                 <Button
+                    android:id="@+id/OfflineView"
                     android:layout_marginTop="5dp"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
-                    android:id="@+id/OfflineView"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:background="@drawable/buttonshape"
-                    android:text="功能按钮"
+                    android:text="离线图片"
                     android:textSize="15dp"
                     android:textColor="@color/white"/>
 

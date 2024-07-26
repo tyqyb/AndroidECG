@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
@@ -36,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportActionBar()!=null){
             getSupportActionBar().hide();
         }
-
         initUI();//初始化控件，并触发点击跳转事件
+
     }
 
     /**初始化控件，点击控件触发跳转事件**/

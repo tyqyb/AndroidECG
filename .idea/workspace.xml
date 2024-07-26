@@ -155,8 +155,11 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Android App.app.executor": "Run",
-    "Application.Mat.executor": "Coverage",
-    "Application.Test.executor": "Coverage",
+    "Application.Mat.executor": "Run",
+    "Application.Test.executor": "Run",
+    "Gradle.AndroidECG:app [:app:Mat.main()].executor": "Run",
+    "Gradle.AndroidECG:app [:app:Test.main()].executor": "Run",
+    "Gradle.E:/02-Github/02-LocalSourceCode/AndroidECG/app [:app:Test.main()].executor": "Run",
     "Gradle.ecg_-monitoring:app [:app:Test.main()].executor": "Run",
     "Logcat.SavePath": "C:\\Users\\yangb\\Desktop",
     "Python.hello.executor": "Run",
@@ -187,12 +190,12 @@
     "dart.analysis.tool.window.visible": "false",
     "kotlin-language-version-configured": "true",
     "last_directory_selection": "F:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/res/drawable",
-    "last_opened_file_path": "E:/02-Github/02-LocalSourceCode/AndroidECG",
-    "project.structure.last.edited": "Project",
+    "last_opened_file_path": "F:/00Projects/Android/codelab/01-CAS-ECG/c-ecg_-monitoring_-sysytem-master",
+    "project.structure.last.edited": "Suggestions",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
     "recommended.upgrade.do.not.ask.for.project": "true",
-    "settings.editor.selected.configurable": "dart.settings",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
     "settings.editor.splitter.proportion": "0.19275825",
     "show.migrate.to.gradle.popup": "false"
   },
@@ -262,6 +265,9 @@
       <recent name="E:\02-Github\02-LocalSourceCode\AndroidECG\app\src\main\res\drawable" />
       <recent name="E:\02-Github\02-LocalSourceCode\AndroidECG\app\src\main\res\drawable-v24" />
       <recent name="F:\00Projects\Android\project\01-ecg_-monitoring_-sysytem-master\app\src\main\res\drawable" />
+    </key>
+    <key name="ExtractSuperBase.RECENT_KEYS">
+      <recent name="USTB.AAIST" />
     </key>
     <key name="android.template.1850483585">
       <recent name="USTB.AAIST.Navigation" />
@@ -472,9 +478,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Android App.ECGChart" />
         <item itemvalue="Application.Mat" />
         <item itemvalue="Application.Test" />
+        <item itemvalue="Android App.ECGChart" />
         <item itemvalue="Python.test" />
         <item itemvalue="Python.hello" />
       </list>

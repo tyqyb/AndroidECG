@@ -13,7 +13,7 @@ public class FileUtils {
 
     public static  String getFilesPath(Context context) {
         Calendar c = Calendar.getInstance();
-        String fname="_心电滤波数据.txt";
+        String fname="_心电滤波数据.csv";
         String filePath ;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) || !Environment.isExternalStorageRemovable()) {
             filePath = context.getExternalFilesDir(null).getPath() + "/" + fname;//外部存储可用
@@ -35,10 +35,10 @@ public class FileUtils {
         }
     }
 
-/**写入原始路径**/
+/**写入原始路径，主要用到的是这个，和第一个代码一样**/
     public static  String getOrginateFilesPath(Context context,String id) {
         Calendar c = Calendar.getInstance();
-        String fname=id+"_心电原始数据.txt";
+        String fname=id+"_心电原始数据.csv";
         String filePath ;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) || !Environment.isExternalStorageRemovable()) {
             filePath = context.getExternalFilesDir(null).getPath() + "/" + fname;//外部存储可用

@@ -1,11 +1,10 @@
 package USTB.AAIST.utils.dsp;
-
+/**
+ * 矩阵的子矩阵函数
+ * 参数a是个浮点型（double）的二维数组，n是去掉的列号
+ * 返回值是一个浮点型二维数组（矩阵去掉第n列后的矩阵）
+ */
 public class Mat {
-    /**
-     * 矩阵的子矩阵函数
-     * 参数a是个浮点型（double）的二维数组，n是去掉的列号
-     * 返回值是一个浮点型二维数组（矩阵去掉第n列后的矩阵）
-     */
     public static double[][] zjz(double[][] a ,int n){
         int hang=a.length;
         int lie=a[0].length;
@@ -20,7 +19,6 @@ public class Mat {
                 result[i][j-1]=a[i][j];
             }
         }
-
         return result;
     }
 
@@ -34,18 +32,10 @@ public class Mat {
                 a[m][n]=b[m][n];
             }
         }
-	   /* double[][] b=new double[a.length][a[0].length];
-
-	    for(int m=0;m<a.length;m++){
-	    	for(int n=0;n<a[0].length;n++){
-	    		b[m][n]=a[m][n].Clone;
-	    	}
-	    }*/
         // 秩小于等于行列数
         nn = a.length;
         if (a.length >= a[0].length)
             nn =a[0].length;
-
         k=0;
 
         // 消元求解
@@ -56,7 +46,6 @@ public class Mat {
             {
                 for (j=l; j<=a[0].length-1; j++)
                 {
-
                     d=Math.abs(a[i][j]);
                     if (d>q)
                     {
@@ -75,7 +64,6 @@ public class Mat {
             {
                 for (j=l; j<=a[0].length-1; j++)
                 {
-
                     d=a[l][j];
                     a[l][j]=a[is][j];
                     a[is][j]=d;
@@ -85,33 +73,27 @@ public class Mat {
             {
                 for (i=l; i<=a.length-1; i++)
                 {
-
                     d=a[i][js];
                     a[i][js]=a[i][l];
                     a[i][l]=d;
                 }
             }
 
-
             for (i=l+1; i<=a.length-1; i++)
             {
                 d=a[i][l]/a[l][l];
                 for (j=l+1; j<=a[0].length-1; j++)
                 {
-
                     a[i][j]=a[i][j]-d*a[l][j];
                 }
             }
         }
-
         return(k);
-
     }
 
-    /**
-     * 矩阵相乘的函数
-     * @ a 参数a，b是两个浮点型（double）的二维数组
-     * @return 返回值是一个浮点型二维数组（矩阵的乘积）
+    /**矩阵相乘的函数
+     * 参数a，b是两个浮点型（double）的二维数组
+     * 返回值是一个浮点型二维数组（矩阵的乘积）
      */
     public static double[][] multi(double[][] a,double[][] b) {
         int hang=a.length;
@@ -129,25 +111,22 @@ public class Mat {
         }
         return result;
     }
-    /**
-     * 两个一维数组相加
-     * @ a 参数a，b是两个浮点型（double）的一维数组
-     * @return 返回值是一个浮点型一维矩阵
+
+    /**两个一维数组相加
+     * 参数a，b是两个浮点型（double）的一维数组
+     * 返回值是一个浮点型一维矩阵
      */
-    public static double[] plus(double[] a,double[] b)
-    {
+    public static double[] plus(double[] a,double[] b) {
         int hang=a.length;
         double[] result=new double[hang];
         for(int i=0;i<hang;i++){
-
             result[i]=a[i]+b[i];
-
         }
         return	result;
     }
+
     public static double[] multi(int[][] a,double[] b) {
         int hang=a.length;
-
         double sum;
         double[] result=new double[hang];
         for(int i=0;i<hang;i++){
@@ -157,9 +136,9 @@ public class Mat {
             }
             result[i]=sum;
         }
-
         return result;
     }
+
     public static int[][] multi(int[][] a,int[][] b) {
         int hang=a.length;
         int lie=b[0].length;
@@ -176,6 +155,7 @@ public class Mat {
         }
         return result;
     }
+
     public static double[][] multi(int[][] a,double[][] b) {
         int hang=a.length;
         int lie=b[0].length;
@@ -193,10 +173,9 @@ public class Mat {
         return result;
     }
 
-    /**
-     * 矩阵乘数的函数
-     * @ a 参数a是个浮点型（double）的一维数组，b是浮点数；
-     * @return 返回值是一个浮点型一维数组（列向量a乘以数b的结果）
+    /**矩阵乘数的函数
+     * 参数a是个浮点型（double）的一维数组，b是浮点数；
+     * 返回值是一个浮点型一维数组（列向量a乘以数b的结果）
      */
     public static double[] multi(double[] a,double b){
         int hang=a.length;
@@ -206,14 +185,12 @@ public class Mat {
         }
         return result;
     }
-    /**
-     * 矩阵相乘的函数
-     * @ a 参数a是个浮点型（double）的二维数组，a是一维数组
-     * @return 返回值是一个浮点型二维数组（矩阵的乘积）
+    /**矩阵相乘的函数
+     * 参数a是个浮点型（double）的二维数组，a是一维数组
+     * 返回值是一个浮点型二维数组（矩阵的乘积）
      */
     public static double[] multi(double[][] a,double[] b) {
         int hang=a.length;
-
         double sum;
         double[] result=new double[hang];
         for(int i=0;i<hang;i++){
@@ -223,13 +200,12 @@ public class Mat {
             }
             result[i]=sum;
         }
-
         return result;
     }
-    /**
-     * 矩阵相加的函数
-     * @ a 参数a，b是两个浮点型（double）的二维数组
-     * @return 返回值是一个浮点型二维数组（矩阵a与b的和）
+
+    /**矩阵相加的函数
+     * 参数a，b是两个浮点型（double）的二维数组
+     * 返回值是一个浮点型二维数组（矩阵a与b的和）
      */
     public static double[][] plus(double[][] a,double[][] b){
         int hang=a.length;
@@ -242,10 +218,10 @@ public class Mat {
         }
         return result;
     }
-    /**
-     * 矩阵相减的函数
-     * @ ，b是两个浮点型（double）的二维数组，
-     * @return 返回值是一个浮点型二维数组（矩阵a与b的差）
+
+    /**矩阵相减的函数
+     * a b是两个浮点型（double）的二维数组，
+     * 返回值是一个浮点型二维数组（矩阵a与b的差）
      */
     public static double[][] minus(double[][] a,double[][] b){
         int hang=a.length;
@@ -258,10 +234,10 @@ public class Mat {
         }
         return result;
     }
-    /**
-     * 矩阵求反函数
-     * @ a（double）的二维数组，
-     * @return 返回值是一个浮点型二维数组（矩阵a的负矩阵）
+
+    /**矩阵求反函数
+     * a（double）的二维数组，
+     * 返回值是一个浮点型二维数组（矩阵a的负矩阵）
      */
     public static double[][] minus(double[][] a){
         int hang=a.length;
@@ -274,6 +250,7 @@ public class Mat {
         }
         return result;
     }
+
     /**
      * 矩阵的子矩阵函数
      * @ m是要去掉的行号，n是去掉的列号
@@ -632,12 +609,12 @@ public class Mat {
                     location=a[0][j];
                     a[0][j]=a[0][j+1];
                     a[0][j+1]=location;
-
                 }
             }
         }
         return a;
     }
+
     public static double[][] MaxToMin1_abs(double[] b){
         double[][] a=new double[2][b.length];
         for(int i=0;i<a[0].length;i++){
@@ -655,13 +632,13 @@ public class Mat {
                     location=a[0][j];
                     a[0][j]=a[0][j+1];
                     a[0][j+1]=location;
-
                 }
             }
         }
         return a;
     }
-    // 去掉某一行元素后的向量
+
+    /**去掉某一行元素后的向量**/
     public static double[] zxl( double[] a, int place){
         double[] b=new double[a.length-1];
         for(int i=0;i<place;i++){
@@ -672,7 +649,8 @@ public class Mat {
         }
         return b;
     }
-    // 去掉某一行元素后的子矩阵
+
+    /**去掉某一行元素后的子矩阵**/
     public static double[][] zjz_qh( double[][] a, int place){
         double[][] b=new double[a.length-1][a[0].length];
         for(int i=0;i<place;i++){
@@ -687,9 +665,9 @@ public class Mat {
         }
         return b;
     }
-    /**
-     * 生成单位阵
-     * @return     I是单位矩阵
+
+    /**生成单位阵
+     * 返回值 I是单位矩阵
      */
     public static double[][] I(int a){
         double[][] I=new double[a][a];

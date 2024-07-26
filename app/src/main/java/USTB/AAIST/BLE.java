@@ -6,7 +6,7 @@ package USTB.AAIST;
  * 手机蓝牙打开后再通过软件打开蓝牙控制开关后才可搜索到设备，但返回后该开关仍然自动关闭,这是每次进入页面会进行初始化关闭
  * 点击连接某蓝牙设备后，手机不会显示蓝牙连接到该设备，且状态标记处始终为正在连接，即没有真正连接到蓝牙设备
  * 2.只能接收特定特征值的蓝牙数据,不能动态的修改蓝牙用到的UUID,故只能连接特定的BLE设备
- *
+ * 3.BLE界面显示蓝牙连接状态，在该页面添加断开蓝牙连接按钮，不在绘图界面添加，否则在那个页面断开后又无法连接
  * **/
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -68,10 +68,13 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     private final List<String> mDuplicateData = new ArrayList<>();//查重数组
     private final List<Devices> mDevices = new ArrayList<>();//设备名称、MAC地址
     private static boolean isGattSuccess = false;//服务回调状态标记符
+    private static boolean connectFlag = false;
+
     private final int mRequestCode = 0x01;//权限请求码
 
     private final static String SERVICE_EIGENVALUE_SEND = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，发送
     private final static String SERVICE_EIGENVALUE_READ = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，接收
+
 
     private EditText mEtMessage;
     private TextView mTvReceive, mTvState;
@@ -121,7 +124,7 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
                 } else {
                     Log.i(TAG, "在BLE.Java onCheckedChanged函数中: 取消扫描，清空设备列表，断开设备连接");
                     mBtAdapter.cancelDiscovery();
-                    disConnected(isGattSuccess);
+                    disConnected(connectFlag);
                     mDevices.clear();
                     mDeviceAdapter.notifyDataSetChanged();
                 }
@@ -165,15 +168,16 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PermissionUtil.checkPermission(this, mRequestCode, permissions);
         }
+
     }
 
-    /**点击断开连接**/
+    /**点击断开连接，没有用到，在ECGChart中调用，后续可删除**/
     @SuppressLint({"MissingPermission", "NonConstantResourceId"})
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_disconnect:
-                disConnected(isGattSuccess);
+                disConnected(connectFlag);
                 break;
         }
     }
@@ -247,112 +251,6 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
 
     /**蓝牙服务回调，建立通信**/
     private final BluetoothGattCallback mBtGattCallback = new BluetoothGattCallback() {
-
-/**后续可删除以下代码
- * 主要功能：实现特征服务的打印，已在ECGChart中调用
- */
-        //成功连接到设备调用此方法
-//        @SuppressLint("MissingPermission")
-//        @Override
-//        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-//            //判断蓝牙是否连接成功
-//            if (newState == BluetoothProfile.STATE_CONNECTED) {
-//                gatt.discoverServices();//发现设备服务 去获取服务
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        mTvState.setText(getString(R.string.connection_succeeded));
-//                    }
-//                });
-//                Log.i(TAG, "在BLE.Java，onConnectionStateChange中: 连接成功！");
-//            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-//                mBtGatt.close();//关闭回调服务（等于断开蓝牙连接）
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        mTvState.setText(getString(R.string.connection_failed));
-//                    }
-//                });
-//                Log.i(TAG, "在BLE.Java，onConnectionStateChange中: : 连接失败！");
-//            }
-//        }
-
-//        /**发现服务，在设备连接成功后调用，扫描到设备服务后调用此方法。
-//         * 调用mBluetoothGatt.discoverServices();方法后，onServicesDiscovered（）这个方法会被调用，说明发现当前设备了。
-//         * 然后可以在里面去获取BluetoothGattService和BluetoothGattCharacteristic。
-//         * **/
-//        @SuppressLint("MissingPermission")
-//        @Override
-//        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-//            //判断回调服务是否成功
-//            if (status == BluetoothGatt.GATT_SUCCESS) {
-//                isGattSuccess = true;
-//                Log.i(TAG, "在BLE.Java，onServicesDiscovered函数中: 回调服务连接成功");
-//            } else {
-//                isGattSuccess = false; //状态标记
-//                Log.i(TAG, "在BLE.Java，onServicesDiscovered函数中: 回调服务连接失败" + status);
-//            }
-//
-//            //源代码仿写
-//            Log.i(TAG, "=======以下在BLE.Java的onServicesDiscovered函数中调用=======" );
-//            List<BluetoothGattService> servicesLists = gatt.getServices(); //获取服务UUID并添加进列表
-//            Log.i(TAG,"扫描到服务的个数:"+servicesLists.size());
-//            int i = 0;
-//            //获取单个服务
-//            for (final BluetoothGattService servicesList : servicesLists) {
-//                ++i;
-//                Log.i(TAG,"-----------打印服务----------");
-//                Log.i(TAG,i+"号服务的uuid: "+servicesList.getUuid().toString());
-//
-//                //获取单个服务下的所有特征
-//                List<BluetoothGattCharacteristic> gattCharacteristics = servicesList
-//                        .getCharacteristics();
-//
-//                int j=0;
-//                Log.i(TAG,"----------打印特征-----------");
-//                //对单个服务的特征进行打印
-//                for (final BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
-//                    ++j;
-//                    if (gattCharacteristic.getUuid().toString().equals(SERVICE_EIGENVALUE_SEND)){//蓝牙的UUID
-//                        Log.i(TAG,"蓝牙的UUID");
-//                        Log.i(TAG,i+"号服务的第"+j+"个特征"+gattCharacteristic.getUuid().toString());
-//                        String mServiceUUID =servicesList.getUuid().toString();
-//                        String mReadWriteUUID=gattCharacteristic.getUuid().toString();
-//
-//                        System.out.println("mServiceUUID"+mServiceUUID+"   mReadWriteUUID"+mReadWriteUUID);
-//                        Log.i(TAG, "-----------------------------");
-//
-//                        mNeedCharacteristic = gattCharacteristic;
-//                        Log.i(TAG,"发送特征："+mNeedCharacteristic.getUuid().toString());
-//                        //设置开启之后，才能在onCharacteristicRead()这个方法中收到数据。
-//                        mBtGatt.setCharacteristicNotification(mNeedCharacteristic, true);
-//
-//                        mTimeHandler.postDelayed(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                BluetoothGattDescriptor clientConfig = mNeedCharacteristic.getDescriptor(UUID.fromString(SERVICE_EIGENVALUE_READ));//这个收取数据的UUID
-//                                Log.i(TAG,"读取特征值的服务："+clientConfig);//这句打印添加在这没用，在对应的chart.java中添加才打印，变相说明已经到那里执行了
-//
-//                                if (clientConfig != null) {
-//                                    clientConfig.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);//设置接收模式
-//                                    mBtGatt.writeDescriptor(clientConfig);//必须是设置这个才能监听模块数据
-//                                }else {
-//                                    Log.i(TAG,"备用方法测试");
-//                                    BluetoothGattService linkLossService = gatt.getService(servicesList.getUuid());
-//                                    //setNotification(mBtGatt,linkLossService.getCharacteristic(UUID.fromString(SERVICE_EIGENVALUE_READ)),true);
-//                                }
-//                            }
-//                        },200);
-//                    }else {
-//
-//                        Log.i(TAG,i + "号服务的第" + j + "个特征" + gattCharacteristic.getUuid().toString());
-//                    }
-//                    Log.i(TAG, "=======以上在BLE.Java的onServicesDiscovered函数中调用=======" );
-//                }
-//            }
-//
-//        }
-
         /**开启监听，即建立与设备的通信的首发数据通道，BLE开发中只有当上位机成功开启监听后才能与下位机收发数据.开启监听成功调用此方法。**/
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
@@ -367,50 +265,21 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
             startActivity(bleTocECG);
             finish();//跳转的同时销毁程序
         }
-
-        /**接收数据，若发送的数据符合通信协议，则下位机会向上位机回复相应的数据。发送的数据通过此方法获取。**/
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            byte[] value = characteristic.getValue(); //value为设备发送的数据，根据数据协议进行解析。
-            String str= DataFormatUtil.arrayToHex(value);
-            List<Double> res =  DataFormatUtil.hexToList(str);
-
-            for(int i =0;i<res.size();i++){
-                System.out.print(res.get(i)+",");
-            }
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mTvReceive.setText(DataFormatUtil.arrayToHex(value));//蓝牙接受到的原始16进制HEX格式信号
-                }
-            });
-            //蓝牙接受到的原始16进制HEX格式信号   C9 7E BF 7E BC 7E ...
-            Log.i(TAG, "在BLE.Java，onCharacteristicChanged函数中: 蓝牙发送过来的数据:" + DataFormatUtil.arrayToHex(value));
-        }
-
     };
 
-/**后续可删除以下注释代码
- * 主要功能：向APP连接的蓝牙发送数据
- * @param data 数据
- * */
-//    @SuppressLint("MissingPermission")
-//    private void sendMsg(String data) {
-//        Log.i(TAG, "在BLE.Java，sendMsg函数中: 发送的数据:" + data);
-//        mWriteBtGattCharacteristic.setValue(DataFormatUtil.arrayToHex(DataFormatUtil.stringToBytes(data))); //设置写入，setValue(发送的数据)
-//        mWriteBtGattCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE); //设置写入特征UUID
-//        mBtGatt.writeCharacteristic(mWriteBtGattCharacteristic); //向设备写入指令。
-//    }
 
-    /**断开蓝牙连接   @param b 判断蓝牙服务回调是否成功（防止空对象异常）**/
+    /**断开蓝牙连接   @param b 判断蓝牙服务回调是否成功（防止空对象异常）
+     * b是空的,所以在BLE界面点击断开蓝牙根本没有反应**/
     @SuppressLint("MissingPermission")
-    private void disConnected(boolean b) {
-        if (b) {
+    private void disConnected(boolean connectFlag) {
+        if (connectFlag) {
             mBtGatt.disconnect();//断开连接
             Log.i(TAG, "在BLE.Java，disConnected函数中: 断开蓝牙连接");
+        }else {
+            Log.i(TAG, "在BLE.Java，disConnected函数中,b是空的:"+ connectFlag);
         }
     }
+
 
     /**权限申请结果回调**/
     @Override

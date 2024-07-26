@@ -10,7 +10,7 @@ from scipy import signal
 global_orginateHeartRate=[]
 #计算心率数值
 global_HeartValue=[]
-#用于滤波得函数
+#用于滤波的函数
 fs = 500
 num_ReRes = [0.99556697201764721, -1.9911339440352944, 0.99556697201764721]
 den_ReRes = [1, -1.9911142922016536, 0.99115359586893548]
@@ -176,21 +176,20 @@ def ecgFilter(data1, data2, data3, data4, data5, data6, data7, data8, data9, dat
         # 2.50HZ工频
         cECG_Wave_RemoveRe_ReomvePowerLine = signal.filtfilt(b1, a1, cECG_Wave_RemoveRe_ReomvePowerLine)
         # 3.上限频率35HZ
-        cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN = signal.filtfilt(b2, a2,
-                                                                       cECG_Wave_RemoveRe_ReomvePowerLine)
+        cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN = signal.filtfilt(b2, a2,cECG_Wave_RemoveRe_ReomvePowerLine)
         # 用于计算心率得追加数值
         append_to_global_HeartValue(cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.tolist())
         #每次清空一下全局变量
         global_orginateHeartRate.clear()
-        #进行心率得计算
+        #进行心率计算
         global heart_rate_mean
 
         if (len(global_HeartValue) % 488 == 0):
 
             t = np.arange(0, 30, 1 / fs)  # 时间序列
             # peaks, _ = find_peaks(np.array(cECG_Wave_RemoveRe_ReomvePowerLine), height=0, distance=250)
-            #         peaks, _ = signal.find_peaks(np.array(my_global_list), height=0, distance=fs / 2)  # 设置高度阈值为0，距离阈值为半秒
-            peaks, _ = signal.find_peaks(np.array(global_HeartValue), height=0.5, distance=200)  # 设置高度阈值为0，距离阈值为半秒
+            # peaks, _ = signal.find_peaks(np.array(my_global_list), height=0, distance=fs / 2)  # 设置高度阈值为0，距离阈值为半秒
+            peaks, _ = signal.find_peaks(np.array(global_HeartValue), height=0.5, distance=200)  # 设置高度阈值为0.5，距离阈值为半秒
 
             # print(np.array(my_global_list)[peaks])
             # print("peaks")
