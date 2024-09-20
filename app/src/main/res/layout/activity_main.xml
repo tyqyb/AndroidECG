@@ -76,13 +76,13 @@
                 <ImageView
                     android:layout_width="200dp"
                     android:layout_height="165dp"
-                    app:srcCompat="@drawable/blood_oxygen" />
+                    app:srcCompat="@drawable/desklogo" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="@string/main_Spo2"
+                    android:text="其他功能"
                     android:textColor="@color/black"
                     android:textSize="24sp" />
 

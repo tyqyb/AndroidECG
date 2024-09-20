@@ -37,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportActionBar()!=null){
             getSupportActionBar().hide();
         }
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);//状态栏字体变暗
+
         initUI();//初始化控件，并触发点击跳转事件
 
     }
@@ -91,5 +93,4 @@ public class MainActivity extends AppCompatActivity {
         menuInflater.inflate(R.menu.blemenu,menu);
         return super.onCreateOptionsMenu(menu);
     }
-
 }

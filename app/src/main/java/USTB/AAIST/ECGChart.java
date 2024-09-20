@@ -64,7 +64,7 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
     //20240722添加以下代码，蓝牙连接标志，重写onConnectionStateChange内部逻辑代码
     private static boolean connectFlag = false;
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "ECGChart";
     private final static String SERVICE_EIGENVALUE_SEND = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，发送
     private final static String SERVICE_EIGENVALUE_READ = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，接收
     private BluetoothGattCharacteristic mNeedCharacteristic;
@@ -97,6 +97,11 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cecgchart);
+        // 隐藏标题栏，setContentView后调用
+        if (getSupportActionBar()!=null){
+            getSupportActionBar().hide();
+        }
+
         SpeechUtility.createUtility(ECGChart.this, SpeechConstant.APPID +"=5f16ff0d");
 
         //ChartView功能按钮的选择点击事件
@@ -131,7 +136,6 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
         handler.postDelayed(runnable, 7000);
     }
 
-
     /**初始化控件
      * @ mTvReceive，find id
      * @ waveShowView,find 心电绘图区域id
@@ -139,10 +143,10 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
      * @ txtECG，更新显示心电数值
      * */
     private void initUI() {
-//      mTvReceive = findViewById(R.id.mTvReceive);
         waveShowView = findViewById(R.id.waveShowView);
-//      waveShowView2 = findViewById(R.id.waveShowView2);
         txtECG = findViewById(R.id.txtECG);
+        //mTvReceive = findViewById(R.id.mTvReceive);//源呼吸波数字
+        //waveShowView2 = findViewById(R.id.waveShowView2);//原呼吸波视图
     }
 
     /**接受点击的某一个蓝牙地址
@@ -157,38 +161,38 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
         Log.d("In ECGChart.java,getBleAddress() function", "收到MAC地址：  " + device.getAddress());
     }
 
-    /**连接蓝牙 @ device  目标设备**/
+    /**连接蓝牙
+     *  @ device  目标设备**/
     @SuppressLint("MissingPermission")
     private void connectBluetooth(BluetoothDevice device) {
-        Log.i("蓝牙搜索状态:", "关闭蓝牙搜索"); //设置1s延迟，保证搜索完全关闭，再开始连接蓝牙。
+        Log.i(TAG,"蓝牙搜索状态：关闭蓝牙搜索"); //设置1s延迟，保证搜索完全关闭，再开始连接蓝牙。
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Log.i("蓝牙搜索状态", "连接蓝牙");
-                //连接蓝牙：autoConnect（布尔值，指示是否在可用时自动连接到BLE设备）
-                mBtGatt = device.connectGatt(ECGChart.this, false, mBtGattCallback);
+                Log.i(TAG,"连接蓝牙");
+                mBtGatt = device.connectGatt(ECGChart.this, false, mBtGattCallback);//连接蓝牙：autoConnect（布尔值，指示是否在可用时自动连接到BLE设备）
             }
         }, 1000);
     }
 
-    /**蓝牙服务回调（建立通信）*/
+    /**蓝牙服务回调，即建立通信**/
     private final BluetoothGattCallback mBtGattCallback = new BluetoothGattCallback() {
         //成功连接到设备调用此方法
         @SuppressLint("MissingPermission")
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            Log.e("InECGChart，onConnectionStateChange", "状态=" + status + "|" + "新状态=" + newState);
+            Log.e(TAG, "onConnectionStateChange中，状态=" + status + "||" + "新状态=" + newState);
             //判断蓝牙是否连接成功
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 gatt.discoverServices();//发现设备服务 去获取服务
-                Log.i("TAG", "在 ECGChart.Java onConnectionStateChange()函数中: 连接成功");
+                Log.i(TAG,"在onConnectionStateChange()函数中: 连接成功");
                 connectFlag = true;//20240722
             }
             else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 mBtGatt.close();//关闭回调服务（等于断开蓝牙连接）
-                Log.i("TAG", "在 ECGChart.Java onConnectionStateChange()函数中: 连接失败");
+                Log.i(TAG, "在onConnectionStateChange()函数中: 连接失败");
                 connectFlag = false;//20240722
             }
         }
@@ -202,33 +206,28 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             //判断回调服务是否成功
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.i("TAG", "在ECGChart.Java的onServicesDiscovered函数中: 回调服务连接成功");
+                Log.i(TAG, "在onServicesDiscovered函数中: 回调服务连接成功，状态为：" + status);
             } else {
-                Log.i("TAG", "在ECGChart.Java的onServicesDiscovered函数中：" + status);
+                Log.i(TAG, "在onServicesDiscovered函数中没有成功连接回调服务，状态为：" + status);
             }
 
-            /**源代码仿写*/
-            Log.i(TAG, "==========================================================================================" );
+            //以下打印蓝牙服务
+            Log.e(TAG, "==========================================================================================" );
             List<BluetoothGattService> servicesLists = gatt.getServices(); //获取服务UUID并添加进集合
             Log.i(TAG, "扫描到服务的个数:" + servicesLists.size());
             int i = 0;
             //获取单个服务
             for (final BluetoothGattService servicesList : servicesLists) {
                 ++i;
-                Log.i(TAG, "-----------打印服务----------");
                 Log.i(TAG, i + "号服务的uuid: " + servicesList.getUuid().toString());
-
                 //获取单个服务下的所有特征
-                List<BluetoothGattCharacteristic> gattCharacteristics = servicesList
-                        .getCharacteristics();
+                List<BluetoothGattCharacteristic> gattCharacteristics = servicesList.getCharacteristics();
 
                 int j = 0;
-                Log.i(TAG, "----------打印特征-----------");
                 //对单个服务的特征进行打印
                 for (final BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
                     ++j;
-                    if (gattCharacteristic.getUuid().toString().equals(SERVICE_EIGENVALUE_SEND)) {//蓝牙的UUID
-                        Log.i(TAG, "蓝牙的UUID");
+                    if (gattCharacteristic.getUuid().toString().equals(SERVICE_EIGENVALUE_SEND)) {
                         Log.i(TAG, i + "号服务的第" + j + "个特征" + gattCharacteristic.getUuid().toString());
                         String mServiceUUID = servicesList.getUuid().toString();
                         String mReadWriteUUID = gattCharacteristic.getUuid().toString();
@@ -239,14 +238,11 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
                         mNeedCharacteristic = gattCharacteristic;
                         Log.i(TAG, "发送特征：" + mNeedCharacteristic.getUuid().toString());
                         //设置开启之后，才能在onCharacteristicRead()这个方法中收到数据。
-                        mBtGatt.setCharacteristicNotification(
-                                mNeedCharacteristic, true);
-
+                        mBtGatt.setCharacteristicNotification(mNeedCharacteristic, true);
                         mTimeHandler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                BluetoothGattDescriptor clientConfig = mNeedCharacteristic
-                                        .getDescriptor(UUID.fromString(SERVICE_EIGENVALUE_READ));//这个收取数据的UUID
+                                BluetoothGattDescriptor clientConfig = mNeedCharacteristic.getDescriptor(UUID.fromString(SERVICE_EIGENVALUE_READ));//这个收取数据的UUID
                                 Log.i(TAG,"读取特征值的服务："+clientConfig);//clientConfig目前就是空的
 
                                 if (clientConfig != null) {
@@ -266,7 +262,7 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
                     }
                 }
             }
-            Log.i(TAG, "==========================================================================================" );
+            Log.e(TAG, "==========================================================================================" );
         }
 
         /**开启监听，建立与设备的通信的收发数据通道，BLE开发中只有当上位机成功开启监听后才能与下位机收发数据.开启监听成功调用此方法**/
@@ -274,18 +270,14 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             super.onDescriptorWrite(gatt, descriptor, status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.i(TAG, "在ECGChart.Java onDescriptorWrite函数中: 开启蓝牙监听成功");
+                Log.i(TAG, "在onDescriptorWrite函数中: 开启蓝牙监听成功");
             }else{
-                Log.i(TAG, "在ECGChart.Java onDescriptorWrite函数中: 没开启蓝牙监听");
+                Log.i(TAG, "在onDescriptorWrite函数中: 没开启蓝牙监听");
             }
-
         }
 
-
-
-
         //——————————————————————————————————————————————————————主要修改以下代码内容————————————————————————————————————————————————————————————————
-        /**接收数据，发送的数据通过此方法获取。
+        /**接收数据，发送的数据通过此方法获取。20240803解决
          * 主要涉及到传输的数据格式的转化  尤其是在HexToList过程中存在大问题20240725
          * 理清数据传输的格式，需要十六进制发送，按着十六进制接收，将其转换名为res的List列表 随后进行python的处理调用，关键问题在于 ArrayList<Double> res = DataFormatUtil.hexToList(str);
          * 中的HexToList肯存在问题，处理后的数据直接变为了 -2.554375,-2.52225,-2.457875,-3.774375,-2.554375,-2.55425,-2.488875,。。。
@@ -351,12 +343,12 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-
-                    //20240627注释以下代码：/**将Java的ArrayList对象传入Python中使用**/~~~txtECG.setText(HeartratelistInt + " ");
+                    //20240727注释以下代码：/**将Java的ArrayList对象传入Python中使用**/~~~txtECG.setText(HeartratelistInt + " ");
                     //为的是直接显示标准的数图像
-                    // **将Java的ArrayList对象传入Python中使用**/
+
+//                    ///**将Java的ArrayList对象传入Python中使用**/
 //                    Python py = Python.getInstance();//创建连接Python的接口
-//                    /**1.进行数据滤波**/
+//                    ///**1.进行数据滤波**/
 //                    PyObject obj = py.getModule("ecgFilterNew").callAttr("ecgFilter", res.get(0),res.get(1),res.get(2),res.get(3),res.get(4),res.get(5),res.get(6),res.get(7),res.get(8),res.get(9),res.get(10),res.get(11),res.get(12),res.get(13),res.get(14),res.get(15),res.get(16),res.get(17),res.get(18),res.get(19),res.get(20),res.get(21),res.get(22),res.get(23),res.get(24),res.get(25),res.get(26),res.get(27),res.get(28),res.get(29),res.get(30),res.get(31),res.get(32),res.get(33),res.get(34),res.get(35),res.get(36),res.get(37),res.get(38),res.get(39),res.get(40),res.get(41),res.get(42),res.get(43),res.get(44),res.get(45),res.get(46),res.get(47),res.get(48),res.get(49),res.get(50),res.get(51),res.get(52),res.get(53),res.get(54),res.get(55),res.get(56),res.get(57),res.get(58),res.get(59),res.get(60),res.get(61),res.get(62),res.get(63),res.get(64),res.get(65),res.get(66),res.get(67),res.get(68),res.get(69),res.get(70),res.get(71),res.get(72),res.get(73),res.get(74),res.get(75),res.get(76),res.get(77),res.get(78),res.get(79),res.get(80),res.get(81),res.get(82),res.get(83),res.get(84),res.get(85),res.get(86),res.get(87),res.get(88),res.get(89),res.get(90),res.get(91),res.get(92),res.get(93),res.get(94),res.get(95),res.get(96),res.get(97),res.get(98),res.get(99),res.get(100),res.get(101),res.get(102),res.get(103),res.get(104),res.get(105),res.get(106),res.get(107),res.get(108),res.get(109),res.get(110),res.get(111),res.get(112),res.get(113),res.get(114),res.get(115),res.get(116),res.get(117),res.get(118),res.get(119),res.get(120),res.get(121));
 //                    List<PyObject> pyList = obj.asList();//将从python中取得的值进行java转换
 //                    System.out.println("在 ECGChart.Java Runnable()函数中, pyList大小为:"+pyList.size());
@@ -370,12 +362,19 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
 //                    //只有下面这句输出打印的offlineRateData的大小与实际发送的数据大小一致，实际发送488个
 //                    System.out.println("在 ECGChart.Java Runnable()函数中, offlineRateData 大小为:"+offlineRateData.size());
 //
-//                    /**2.通过python调用计算心率**/
+//                    ///**2.通过python调用计算心率**/
 //                    PyObject obj2 = py.getModule("ecgFilterNew").callAttr("get_hear_rate");
 //                    Integer rate = obj2.toJava(Integer.class);
 //                    HeartratelistInt = rate.intValue();
 //                    System.out.println("在 ECGChart.Java Runnable()函数中, 心率为:"+HeartratelistInt);
 //                    txtECG.setText(HeartratelistInt + " ");
+
+                    //直接绘图时离线图片没有数据，在OfflineRateActivity.java中offline_ratedata因注释上面两个步骤是空的了，导致后面的数据都是空的，所以没图像
+                    //20240803添加以下代码解决
+                    for (int i = 0; i < res.size(); i++) {
+                        offlineRateData.add(res.get(i));
+                        offlineRateOrginateData.add(res.get(i));
+                    }
 
                     /**3.展示心电图数据**/
                     ////下面这句输出打印的Heartratelist的大小与实际发送的数据大小一致，实际发送488个
@@ -456,49 +455,36 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
         return super.onKeyDown(keyCode, event);
     }
 
-
-    /**离线功能选择按钮点击事件20240722
-     * 改编自源代码onOptionsItemSelected switch 函数 和onCreateOptionsMenu菜单
-     * 同时参考57行修改记录
-     **/
+    /**离线功能选择按钮点击事件20240722-20240802**/
     @Override
     public void onClick(View v){
         switch (v.getId()){
-            case R.id.OfflineView://还不好用
-                if(ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            case R.id.OfflineView:
+                if(ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
                     mBtGatt.disconnect();
-                    Log.i(TAG, "选择了保存离线心电图，已断开蓝牙连接");
+                    Toast.makeText(ECGChart.this, "蓝牙连接已断开", Toast.LENGTH_SHORT).show();
                     // 通过Intent传递对象给Service
                     Intent intent = new Intent(ECGChart.this, OfflineRateActivity.class);
                     intent.setAction("action");
-                    System.out.println("offlineRateData的大小:" + offlineRateData.size());
-
                     intent.putExtra("offline_orginateratedata", offlineRateOrginateData);//心电原始信号
                     intent.putExtra("offline_ratedata", offlineRateData);//心电滤波信号
 
-                    startActivity(intent);
+                    if (intent.resolveActivity(getPackageManager()) != null) {//20240801
+                        Log.i(TAG,"可以正常启动处理Intent");
+                        startActivity(intent);
+                    } else {Log.i(TAG,"没有活动可以处理这个Intent");}
                 }else{
-                    Log.i(TAG, "选择了保存离线心电图，已断开蓝牙连接");
-                    // 通过Intent传递对象给Service
-                    Intent intent = new Intent(ECGChart.this, OfflineRateActivity.class);
-                    intent.setAction("action");
-                    System.out.println("offlineRateData的大小:" + offlineRateData.size());
-
-                    intent.putExtra("offline_orginateratedata", offlineRateOrginateData);//心电原始信号
-                    intent.putExtra("offline_ratedata", offlineRateData);//心电滤波信号
-
-                    startActivity(intent);
+                    Toast.makeText(ECGChart.this, "没有蓝牙权限", Toast.LENGTH_SHORT).show();
                 }
             break;
 
             case R.id.EcgChartView_disconnect:
-                    mBtGatt.disconnect();//断开连接
+                    mBtGatt.disconnect();
                     Toast.makeText(ECGChart.this, "蓝牙连接已断开！", Toast.LENGTH_SHORT).show();
-//                finish();//添加此代码返回至BLE界面，
+                    //finish();//添加此代码返回至BLE界面，
             break;
 
             case R.id.OfflineData:
-                Log.i(TAG, "点击了离线数据");
                 System.out.println("ECGChart.Java,case  R.id.offline_data,原始离线数据的大小:"+offlineRateOrginateData.size());
                 mBtGatt.disconnect();
                 Log.i(TAG, "选择了保存离线数据，已断开蓝牙连接");
@@ -532,98 +518,4 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
             break;
         }
     }
-
-
-    /**离线功能选择
-     * 完善好点击按钮功能平替后可删除此部分
-     * 外加onCreateOptionsMenu
-     **/
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.offline_rate://离线心电图
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                    mBtGatt.disconnect();
-                    Log.i(TAG, "选择了保存离线心电图，已断开蓝牙连接");
-                    // 通过Intent传递对象给Service
-                    Intent intent = new Intent(ECGChart.this, OfflineRateActivity.class);
-                    intent.setAction("action");
-                    System.out.println("offlineRateData的大小:"+offlineRateData.size());
-
-                    intent.putExtra("offline_orginateratedata", offlineRateOrginateData);//心电原始信号
-                    intent.putExtra("offline_ratedata", offlineRateData);//心电滤波信号
-
-                    startActivity(intent);
-                }else{
-                    Log.i(TAG, "没权限！！！！！！！！！！！");
-                }
-                break;//将值传递给另外一个界面记录数据，并进行界面的跳转
-
-            //保存离线数据，已经在新添加的点击事件中调用20240722
-            case  R.id.offline_data://保存离线数据
-                System.out.println("ECGChart.Java,case  R.id.offline_data,原始离线数据的大小:"+offlineRateOrginateData.size());
-                mBtGatt.disconnect();
-                Log.i(TAG, "选择了保存离线数据，已断开蓝牙连接");
-                //将原始数据存储在txt当中，OfflineRateActivity同样解除注释调用，可能会有冲突
-                AlertDialog.Builder builder = new AlertDialog.Builder(ECGChart.this);
-                builder.setTitle("请输入编号信息");//设置对话框标题
-                builder.setIcon(android.R.drawable.btn_star);//设置对话框标题前的图标
-                final EditText edit = new EditText(ECGChart.this);
-                builder.setView(edit);
-                builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {//
-                        Toast.makeText(ECGChart.this, "文件已保存至 我的手机/Android/data/USTB.AAIST/files", Toast.LENGTH_SHORT).show();
-//                        Toast.makeText(ECGChart.this, "你输入的是: " + edit.getText().toString(), Toast.LENGTH_SHORT).show();//弹出确认输入的小对话框
-                        //存储经过计算之后的心电信号
-                        String orginatepath=FileUtils.getOrginateFilesPath(ECGChart.this,edit.getText().toString());
-                        for(int i=0;i<offlineRateOrginateData.size();i++){
-                            FileUtils.orginatewrite(orginatepath,offlineRateOrginateData.get(i)+"\n");//离线数据分隔格式：回车符分隔
-                        }
-                    }
-                });
-                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(ECGChart.this, "已取消！", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                builder.setCancelable(true);//设置按钮是否可以按返回键取消,false则不可以取消
-                AlertDialog dialog = builder.create();//创建对话框
-                dialog.setCanceledOnTouchOutside(true);//设置弹出框失去焦点是否隐藏,即点击屏蔽其它地方是否隐藏
-                dialog.show();
-                break;
-
-/**此段注释考虑是否将加入呼吸波的绘制而选择是否删除**/
-//            case R.id.offline_respiratory://离线呼吸波
-//                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-//                    mBtGatt.disconnect();
-//                    Log.i(TAG, "选择了保存离线呼吸波，已断开蓝牙连接");
-//                    // 通过Intent传递对象给Service
-//                    Intent intent = new Intent(ECGChart.this, OfflineRespiratoryActivity.class);
-//                    intent.setAction("action");
-//
-//                    intent.putExtra("offline_Respiratorydata", offlineRespiratoryData);//呼吸波信号
-//
-//                    startActivity(intent);
-//                }
-//                break;
-
-            default:
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**原始标题栏菜单功能按钮**/
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater menuInflater = new MenuInflater(this);
-        menuInflater.inflate(R.menu.blemenu,menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-
-
   }

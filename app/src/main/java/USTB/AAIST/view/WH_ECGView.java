@@ -6,17 +6,16 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
+import android.nfc.Tag;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-
 import java.util.ArrayList;
-
 import USTB.AAIST.R;
 
 public class WH_ECGView extends View {
-
+    private static final String TAG = "WH_ECGView";
     private float gap_grid;//网格间距
     private int width,height;//本页面宽，高
     private int xori;//原点x坐标
@@ -25,28 +24,24 @@ public class WH_ECGView extends View {
     private int dataNum_per_grid = 10;//每小格内的数据个数
     private float y_center;//中心y值
     private ArrayList<Double> data_source;
-
     private float x_change ;//滑动查看时，x坐标的变化
     private static float x_changed ;
     private static float startX;//手指touch屏幕时候的x坐标
     private int data_num;//总的数据个数
     private float offset_x_max;//x轴最大偏移量
-
-    private int rect_high = 80;//下方用于显示心电图形的矩形区域的高
+    private int rect_high = 40;//下方用于显示心电图形的矩形区域的高
     private float rect_width;//下方矩形框的宽度
     private float rect_gap_x;//下方矩形区域心电图数据间的横坐标间隙
     private float multiple_for_rect_width;//矩形区域的宽与屏幕宽的比
 
+
     public WH_ECGView(Context context, AttributeSet attrs){
         super(context,attrs);
-        //背景色
-        this.setBackgroundColor(getResources().getColor(R.color.white));
+        this.setBackgroundColor(getResources().getColor(R.color.white));//背景色
     }
-
     public WH_ECGView(Context context){
         super(context);
-        //背景色
-        this.setBackgroundColor(getResources().getColor(R.color.white));
+        this.setBackgroundColor(getResources().getColor(R.color.white));//背景色
     }
 
     @Override
@@ -81,7 +76,7 @@ public class WH_ECGView extends View {
         DrawECGWave(canvas);
     }
 
-//画背景网格
+/**画背景网格**/
     private void DrawGrid(Canvas canvas){
         //横线
         for (int i = 1 ; i < grid_hori + 2 ; i ++){
@@ -92,7 +87,7 @@ public class WH_ECGView extends View {
             Path path = new Path();
             path.moveTo(xori, gap_grid * (i-1) + (height-grid_hori*gap_grid)/2);
             path.lineTo(width,gap_grid * (i-1) + (height-grid_hori*gap_grid)/2);
-            if ( i % 5 != 0 ){//每第五条，为实线   其余为虚线 ，以下为画虚线方法
+            if ( i % 5 != 0 ){//第五条为实线，其余为虚线，以下为画虚线方法
                 PathEffect effect = new DashPathEffect(new float[]{1,5},1);
                 paint.setPathEffect(effect);
             }
@@ -115,7 +110,7 @@ public class WH_ECGView extends View {
         }
     }
 
-//画心电图
+/**画心电图**/
     private void DrawECGWave(Canvas canvas){
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
@@ -149,7 +144,7 @@ public class WH_ECGView extends View {
 
         canvas.drawPath(path,paint);
 
-//绘制下方矩形区域 @param canvas
+        //绘制下方矩形区域
         Paint Rect_paint = new Paint();
         Rect_paint.setStyle(Paint.Style.FILL);
         Rect_paint.setColor(getResources().getColor(R.color.black));
@@ -163,10 +158,9 @@ public class WH_ECGView extends View {
         canvas.drawPath(Rect_path,Rect_paint);
     }
 
-//滑动查看心电图， @param event， @return
+/**滑动查看心电图**/
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 startX=event.getX();
@@ -179,9 +173,8 @@ public class WH_ECGView extends View {
             return true;
     }
 
-//将数值转换为y坐标，中间大的显示心电图的区域
+/**将数值转换为y坐标，中间大的显示心电图的区域**/
     private double getY_coordinate(double data){
-
         Double y_int = data;
         y_int = (y_int)*-1;
         Double y_coor = Double.valueOf(0.0f);
@@ -190,10 +183,19 @@ public class WH_ECGView extends View {
         return y_coor;
     }
 
-// 暴露接口，设置数据源
+/**暴露接口，设置数据源**/
     public void setData(ArrayList<Double> data){
-        this.data_source = data;
-        invalidate();//更新视图,重新绘制
+        if (data != null) {
+            Log.e(TAG, "=======data 非空！！======="+data.size());
+            this.data_source = data;
+            invalidate();//更新视图,重新绘制
+        } else {
+            Log.e(TAG, "=======data 是空的=======");
+            // data = new ArrayList<>(); // Initialize if appropriate
+        }
+
+        //this.data_source = data;
+        //invalidate();//更新视图,重新绘制
     }
 
 }

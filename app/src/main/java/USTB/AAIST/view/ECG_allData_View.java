@@ -5,23 +5,24 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import java.util.ArrayList;
 import USTB.AAIST.R;
 
-public class ECGAllDataView extends View {
-
+public class ECG_allData_View extends View {
+    private static final String TAG = "ECG_allData_View";
     private int width,height;//本页面宽，高
     private ArrayList<Double> data_source;
     private int data_num;//总的数据个数
     private float rect_gap_x;//下方矩形区域心电图数据间的横坐标间隙
     private float rectY_center;//下方矩形区域心电图的中心Y值
 
-    public ECGAllDataView(Context context, AttributeSet attrs){
+    public ECG_allData_View(Context context, AttributeSet attrs){
         super(context,attrs);
         this.setBackgroundColor(getResources().getColor(R.color.trans));//透明背景色
     }
-    public ECGAllDataView(Context context){
+    public ECG_allData_View(Context context){
         super(context);
         this.setBackgroundColor(getResources().getColor(R.color.trans));//透明背景色
     }
@@ -61,6 +62,7 @@ public class ECGAllDataView extends View {
         }
         canvas.drawPath(path,paint);
     }
+
 /**将数值转换为y坐标，下方矩形 显示心电图的区域**/
     private float getRectY_coordinate(Double data){
         double y_int = (data - 2048) * (-1);
@@ -72,7 +74,14 @@ public class ECGAllDataView extends View {
 
 /**暴露接口，设置数据源**/
     public void setData(ArrayList<Double> data){
-        System.out.println("暴露接口:"+data.toString());
-        this.data_source = data;
+        //System.out.println("暴露接口:"+data.toString());
+        if (data != null) {
+            this.data_source = data;
+            Log.e(TAG,"=======data 非空！！=======" +data.size());
+            //data.toString();
+        } else {
+            Log.e(TAG, "=======data 是空的=======");
+           // data = new ArrayList<>(); // Initialize if appropriate
+        }
     }
 }

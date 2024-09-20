@@ -9,7 +9,7 @@
         android:id="@+id/ecg_data_ecgView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-    <USTB.AAIST.view.ECGAllDataView
+    <USTB.AAIST.view.ECG_allData_View
         android:id="@+id/allData_ecgView"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"

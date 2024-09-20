@@ -17,13 +17,14 @@ public class DataFormatUtil {
     }
     static List<Double> res=new ArrayList<Double>();
 
+    /**
+     * 编辑时间：20240803
+     * 编辑描述：以下的hexToList中包含两部分互斥的内容，Code_1避免因数据量的问题调用ECGChart中的python一次处理122个数据函数而导致闪退，直接将拿到的数据进行处理与绘制，return resultList;;
+     * Code_2是源代码中调用Python时需要提前进行电压数据的滤波，将其单独拿出来作为HexDataFormatToStr函数，但目前没有进行调用，return cECG_Raw_Wave;
+     * 使用说明：使用Code_1需要注释掉ECGChart中，public void run()函数中的1、2两个Python步骤，同时要将heartList.改为res.size()/get(),而使用Code_2则需解除该部分的注释
+     * **/
     public static  ArrayList<Double>  hexToList(String str){
-
-        /**20240726添加如下功能代码
-         * 原始数据为标准数据库中的，所以直接用蓝牙模块将数据以十六进制发送到手机，以下代码是实现将十六进制Hex格式的字符串（2D 30 2E 31 31 33 0D 0A），转换为十进制double类型字符串（-0.113（回车 0A））
-         * 然后将该数据不经过python处理而直接进行绘制，即将ECGChart中的 python数据滤波、计算心率注释，直接调用返回的ArrayList<Double>，将res数值进行绘制，即waveShowView.showLine(res.get(i));
-         * 此段代码仅实现将十六进制Hex格式的字符串，对于传感器接收到的数据集应考虑还是按着源代码进行处理，则两个代码应当分别独立调用，对应修改ECGChart调用
-         **/
+        //Code_1:20240726~20240803
         str = str.replace(" ", "");// 去除空格
         String[] splitHex = str.split("0A");// 按回车符0A分割
         ArrayList<Double> resultList = new ArrayList<>();
@@ -43,12 +44,12 @@ public class DataFormatUtil {
                 double value = Double.parseDouble(asciiString.toString());
                 resultList.add(value);
             } catch (NumberFormatException e) {
-                // 如果无法转换为浮点数，则忽略该段
-                e.printStackTrace();
+                e.printStackTrace();// 如果无法转换为浮点数，则忽略该段
             }
         }
         return resultList;
 
+        //Code_2:以下为原版本源代码
         /**将一个十六进制字符串转换为ECG原始波形数据列表，源代码于20240726注释
          * ### 实现原理
          * 1. 字符串分割：将输入的十六进制字符串按空格分割成一个字符串数组。
@@ -74,8 +75,7 @@ public class DataFormatUtil {
          * 4. 结果列表：[-1.5, -1.2]。
          * 这段代码将返回一个包含两个电压值的列表。
          * */
-/*        //以下为源代码
-        //List<Integer> file_data = new ArrayList<>();
+/*        //List<Integer> file_data = new ArrayList<>();
         String[] strList =  str.split(" ");//将输入的十六进制字符串按回车符分割成一个字符串数组。
         List<Integer> cECG_Wave_LowByte= new ArrayList<>();
         List<Integer> cECG_Wave_HighByte= new ArrayList<>();
@@ -109,11 +109,12 @@ public class DataFormatUtil {
 
     }
 
-    /**将一个十六进制字符串转换为ECG原始波形数据列表
-     * 功能：将Hex转为ECG原始波形数据列表，其中Hex信号应为传感器接收到的原始信号，而上面的hexToList(String str)则是标准信号直接转换成十进制浮点 类型
-     * 实现原理：见hexToList(String str)中的注释
-     * 原代码在hexToList(String str)内容中，于20240726将其独立出来便于后续的ECGChart分别调用处理数据
-     * **/
+
+    /**
+     * 编辑时间：20240803
+     * 编辑描述：将版本源代码中的代码注释并将字符转换的功能单独拿了出来，成为一个新的函数，目前还没有调用，
+     * 取决于接收到的数据是电压数据还是标准的数据
+     **/
     public static ArrayList<Double> HexDataFormatToStr (String str){
         //以下为源代码
         //List<Integer> file_data = new ArrayList<>();
