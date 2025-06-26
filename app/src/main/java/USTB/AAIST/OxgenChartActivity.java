@@ -31,7 +31,6 @@ public class OxgenChartActivity extends AppCompatActivity {
 
     //后续可删除的控件
     private Button click;
-
     private Button conBlebtn;
     private TextView recTxt;
     private Context mContext;
@@ -295,10 +294,10 @@ public class OxgenChartActivity extends AppCompatActivity {
         //接收数据，若发送的数据符合通信协议，则下位机会向上位机回复相应的数据。发送的数据通过此方法获取。
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            byte[] value = characteristic.getValue(); //value为设备发送的数据，根据数据协议进行解析。
-            String str = DataFormatUtil.arrayToHex(value);
+            byte[] data = characteristic.getValue(); //value为设备发送的数据，根据数据协议进行解析。
+            //String str = DataFormatUtil.arrayToHex(value);
             //122个点，进行画波操作 List类型
-            res = DataFormatUtil.hexToList(str);
+            res = DataFormatUtil.hexToList(data);
 
             //经过计算得到的数据    -0.038875,-0.040125,-0.0405,-0.038125,-0.。。。。。。。。。
 //            for(int i =0;i<res.size();i++){

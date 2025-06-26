@@ -8,81 +8,111 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.constraintlayout.motion.widget.MotionLayout;
-import androidx.fragment.app.FragmentTransaction;
-import android.view.WindowManager;
-import android.view.Window;
-import com.chaquo.python.Kwarg;
-import com.chaquo.python.Python;
-import com.chaquo.python.PyObject;
-import com.chaquo.python.android.AndroidPlatform;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import USTB.AAIST.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
     private LinearLayout cECG_Layout;
-    private LinearLayout Oxygen_Layout;
+    private LinearLayout Recdata_Layout;
+    // 使用单例管理蓝牙在页面跳转时的状态传递
+    private MyBluetoothManager myBluetoothManager;
+    //private static boolean isBluetoothConnected = false;
+    //private static BLE bleInstance;
+    // 页面类型常量，在MainActivity.java中
+    public static final int PAGE_ECG = 1;
+    public static final int PAGE_RECDATA = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 隐藏标题栏，setContentView后调用，并且需要requestWindowFeature函数
+        myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());
+
+        // 隐藏标题栏
         if (getSupportActionBar()!=null){
             getSupportActionBar().hide();
         }
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);//状态栏字体变暗
-
-        initUI();//初始化控件，并触发点击跳转事件
-
-    }
-
-    /**初始化控件，点击控件触发跳转事件**/
-    private void initUI() {
-        cECG_Layout = findViewById(R.id.cECG_Layout);
-       // Oxygen_Layout = findViewById(R.id.Spo2_Layout);
-
-        //心电点击事件监听
-        cECG_Layout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //先跳转到蓝牙连接界面
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this, BLE.class);
-                startActivity(intent);
-            }
-        });
-
-        /**
-         * 血氧点击事件监听，后续功能开放需解除如下注释：
-         * ① private LinearLayout Oxygen_Layout;
-         * ② Oxygen_Layout = findViewById(R.id.Spo2_Layout);
-         * ③ Oxygen_Layout.setOnClickListener(new View.OnClickListener() {
-         * **/
-//        Oxygen_Layout.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                //跳转至血氧监测界面
-//                Intent intent = new Intent();
-//                intent.setClass(MainActivity.this,OxgenChartActivity.class);
-//                startActivity(intent);
-//            }
-//        });
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        initUI();
+        // 处理从BLE页面返回的意图
+        handleIntent(getIntent());
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent != null) {
+            // 检查是否有目标页面需要跳转
+            if (intent.hasExtra("target_page")) {
+                int targetPage = intent.getIntExtra("target_page", -1);
+                // 使用更可靠的isDeviceConnected() 方法，因为它不仅检查连接状态，还检查设备地址的有效性
+                if (targetPage != -1 && MyBluetoothManager.getInstance(getApplicationContext()).isDeviceConnected()) {
+                    navigateToTargetPage(targetPage);
+                }
+            }
+        }
+    }
+
+    /** 初始化控件并设置点击事件 */
+    private void initUI() {
+        cECG_Layout = findViewById(R.id.cECG_Layout);
+        Recdata_Layout = findViewById(R.id.recdataid);
+        // 心电点击事件
+        cECG_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_ECG));
+        // 数据接收点击事件
+        Recdata_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_RECDATA));
+    }
+
+    /** 导航到目标页面 */
+    private void navigateToTargetPage(int pageType) {
+        if (myBluetoothManager.isConnected()) {
+            Intent intent = new Intent();
+            switch (pageType) {
+                case PAGE_ECG:
+                    intent.setClass(this, ECGChart.class);
+                    break;
+                case PAGE_RECDATA:
+                    intent.setClass(this, Recdata.class);
+                    intent.putExtra("DEVICE_ADDRESS", myBluetoothManager.getDeviceAddress());
+                    break;
+            }
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "请先连接蓝牙设备", Toast.LENGTH_SHORT).show();
+            Intent bleIntent = new Intent(this, BLE.class);
+            bleIntent.putExtra("target_page", pageType);
+            startActivity(bleIntent);
+        }
+    }
+
+/*    @Override
+    protected void onResume() {
+        super.onResume();
+        // 检查是否有从BLE页面返回的跳转请求
+        if (getIntent() != null && getIntent().hasExtra("should_navigate")) {
+            int targetPage = getIntent().getIntExtra("target_page", -1);
+            if (targetPage != -1) {
+                navigateToTargetPage(targetPage);
+            }
+        }
+    }
+    MyBluetoothManager myManager = MyBluetoothManager.getInstance(getApplicationContext());
+
+    */
+
+    @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.ble:
-                Intent bleIntent = new Intent(this, BLE.class);
-                startActivity(bleIntent);
-                break;
+        if (item.getItemId() == R.id.ble) {
+            Intent bleIntent = new Intent(this, BLE.class);
+            startActivity(bleIntent);
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -90,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = new MenuInflater(this);
-        menuInflater.inflate(R.menu.blemenu,menu);
+        menuInflater.inflate(R.menu.blemenu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 }

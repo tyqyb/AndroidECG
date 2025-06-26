@@ -27,6 +27,11 @@
           <theme>@style/test</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main2.xml">
+        <config>
+          <theme>@style/test</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_offline_rate.xml">
         <config>
           <theme>@style/test</theme>
@@ -38,6 +43,11 @@
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_oxgen_chart.xml">
+        <config>
+          <theme>@style/test</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_recdata.xml">
         <config>
           <theme>@style/test</theme>
         </config>
@@ -77,7 +87,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\yangb\.android\avd\YPixel_2_API_34.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=ACTH023117001459)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -124,12 +134,12 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="Python Script" />
         <option value="Setup Script" />
-        <option value="layoutResourceFile" />
         <option value="valueResourceFile" />
         <option value="navigationResourceFile" />
+        <option value="layoutResourceFile" />
+        <option value="Class" />
         <option value="resourceFile" />
       </list>
     </option>
@@ -170,6 +180,9 @@
     &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
     &quot;ScreenRecorder.SavePath&quot;: &quot;C:\\Users\\yangb\\Desktop&quot;,
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine.java_SELECTED&quot;: &quot;DrawLine&quot;,
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine2.java_SELECTED&quot;: &quot;DrawLine2&quot;,
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/MyView.java_SELECTED&quot;: &quot;MyView&quot;,
     &quot;android-custom-viewD:/AndroidStudio/AndroidSDK/sources/android-34/android/widget/LinearLayout.java_SELECTED&quot;: &quot;LinearLayout&quot;,
     &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_SELECTED&quot;: &quot;RespiratoryView&quot;,
     &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_SELECTED&quot;: &quot;Respiratory_Wave&quot;,
@@ -191,9 +204,9 @@
     &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_directory_selection&quot;: &quot;F:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/res/drawable&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/yangb/Desktop&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Suggestions&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/res/drawable&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/res/drawable&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
     &quot;recommended.upgrade.do.not.ask.for.project&quot;: &quot;true&quot;,
@@ -202,6 +215,18 @@
     &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   },
   &quot;keyToStringList&quot;: {
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine.java_DrawLine_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
+    ],
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine2.java_DrawLine2_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
+    ],
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/MyView.java_MyView_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
+    ],
     &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_RespiratoryView_DIMENSIONS&quot;: [
       &quot;1080&quot;,
       &quot;1920&quot;
@@ -248,7 +273,7 @@
   }
 }</component>
   <component name="PsdUISettings">
-    <option name="MODULE_TAB" value="Properties" />
+    <option name="MODULE_TAB" value="Default Config" />
     <option name="LAST_EDITED_SIGNING_CONFIG" value="debug" />
     <option name="LAST_EDITED_BUILD_TYPE" value="release" />
   </component>
@@ -257,11 +282,11 @@
       <recent name="USTB.AAIST" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\yangb\Desktop\AndroidECG-main2\AndroidECG-main\app\src\main\res\drawable" />
       <recent name="E:\02-Github\02-LocalSourceCode\AndroidECG\app\src\main\res\drawable" />
       <recent name="F:\00Projects\Android\aaistproject\ecg_-monitoring\app\src\main\res" />
       <recent name="F:\00Projects\Android\aaistproject\ecg_-monitoring\app\src\main\res\animtation" />
       <recent name="F:\00Projects\Android\aaistproject\ecg_-monitoring\app\src\main\res\drawable-v24" />
-      <recent name="F:\00Projects\Android\aaistproject\ecg_-monitoring\app\src\main\res\drawable" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="E:\02-Github\02-LocalSourceCode\AndroidECG\app\src\main\res\drawable" />
@@ -273,6 +298,12 @@
     </key>
     <key name="android.template.1850483585">
       <recent name="USTB.AAIST.Navigation" />
+    </key>
+    <key name="android.template.497499887">
+      <recent name="USTB.AAIST" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="USTB.AAIST.view" />
     </key>
   </component>
   <component name="RunManager" selected="Android App.app">

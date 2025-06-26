@@ -1,21 +1,12 @@
 package USTB.AAIST;
-/**低功耗蓝牙连接
- * Edit By：
- * **/
-/**
- * BUG描述：1.当手机蓝牙处于关闭状态时，通过软件蓝牙打开开关不会打开手机蓝牙，也不会搜索设备
- * 最主要的在BLE页面，手机蓝牙与页面蓝牙控制开关军打开后仍然不进行搜索设备，即开关打开后不进行页面设备列表的更新
- * 手机蓝牙打开后再通过软件打开蓝牙控制开关后才可搜索到设备，但返回后该开关仍然自动关闭,这是每次进入页面会进行初始化关闭
- * 点击连接某蓝牙设备后，手机不会显示蓝牙连接到该设备，且状态标记处始终为正在连接，即没有真正连接到蓝牙设备
- * 2.只能接收特定特征值的蓝牙数据,不能动态的修改蓝牙用到的UUID,故只能连接特定的BLE设备
- * 3.BLE界面显示蓝牙连接状态，在该页面添加断开蓝牙连接按钮，不在绘图界面添加，否则在那个页面断开后又无法连接
- * **/
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
@@ -23,296 +14,572 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.Window;
-import android.widget.AdapterView;
-import android.widget.CompoundButton;
-import android.widget.EditText;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import USTB.AAIST.adapter.DevicesAdapterList;
 import USTB.AAIST.devicesdata.Devices;
-import USTB.AAIST.utils.PermissionUtil;
 
-import android.text.method.ScrollingMovementMethod;
-import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
-import android.bluetooth.le.BluetoothLeScanner;
-import USTB.AAIST.utils.DataFormatUtil;
-import android.widget.Button;
-import java.util.UUID;
-import android.nfc.Tag;
 
 public class BLE extends AppCompatActivity implements View.OnClickListener {
-    private static final String TAG = "In BLE.Java";//Logcat日志输出的标题
-    private BluetoothGatt mBtGatt;
+
+    private static final int PERMISSION_REQUEST_BLUETOOTH_CONNECT = 102;
+    private static final String TAG = "BLE_DEBUG";
+    private static final int REQUEST_ENABLE_BT = 1;
+    private static final int PERMISSION_REQUEST_CODE = 100;
+    private static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 1001; // 可以是任意唯一整数
     private BluetoothAdapter mBtAdapter;
+    private BluetoothLeScanner mBluetoothLeScanner;
     private DevicesAdapterList mDeviceAdapter;
-    private final List<String> mDuplicateData = new ArrayList<>();//查重数组
-    private final List<Devices> mDevices = new ArrayList<>();//设备名称、MAC地址
-    private static boolean connectFlag = false;
-    private final int mRequestCode = 0x01;//权限请求码
+    private final List<Devices> mDevices = new ArrayList<>();
+    private final Map<String, Devices> mDeviceMap = new HashMap<>(); // 设备去重映射
+    private BluetoothGatt mBtGatt;
+    private boolean mScanning = false;
+    private Handler mHandler = new Handler();
+    private TextView mTvState;
+    private SwitchCompat btSwitch;
+    private ListView listView;
+    private Button btnRefresh;
+    private String mConnectedDeviceAddress;
 
-    private final static String SERVICE_EIGENVALUE_SEND = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，发送
-    private final static String SERVICE_EIGENVALUE_READ = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，接收
-    private BluetoothGattCharacteristic mWriteBtGattCharacteristic;
-    private BluetoothGattCharacteristic mNeedCharacteristic;
-    private Handler mTimeHandler = new Handler();
-    private static boolean isGattSuccess = false;//服务回调状态标记符
-    private EditText mEtMessage;
-    private TextView mTvReceive, mTvState;
-    private Context mContext;
+    // 添加 MyBluetoothManager 引用
+    private MyBluetoothManager myBluetoothManager;
 
-    //权限数组
     @RequiresApi(api = Build.VERSION_CODES.S)
-    private final String[] permissions = new String[]{
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.BLUETOOTH_CONNECT,
+    private final String[] REQUIRED_PERMISSIONS = {
             Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.ACCESS_FINE_LOCATION
     };
 
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ble);
 
-        //状态栏相关
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        //getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);//状态栏字体变暗
-
-        //标题栏颜色
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#107C8A")));
+        // 确保在任何操作前初始化 MyBluetoothManager
+        myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());
+        if (myBluetoothManager == null) {
+            Log.e(TAG, "MyBluetoothManager instance is null!");
+            Toast.makeText(this, "蓝牙管理器初始化失败", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
-        //状态栏颜色
-        Window window = getWindow();
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(Color.parseColor("#107C8A"));
 
-
-        SwitchCompat btSwitch = findViewById(R.id.st_main_blue);
-        //Button btnDisConnect = findViewById(R.id.button_disconnect);//BLE布局断开连接
-        ListView listView = findViewById(R.id.discover_device_list);
-
-        int accessfilelocationCheck = ContextCompat.checkSelfPermission(BLE.this,Manifest.permission.ACCESS_FINE_LOCATION);
-        int accesscoarselocationCheck = ContextCompat.checkSelfPermission(BLE.this, Manifest.permission.ACCESS_COARSE_LOCATION);
-        if(accessfilelocationCheck!=PackageManager.PERMISSION_GRANTED ||accesscoarselocationCheck!=PackageManager.PERMISSION_GRANTED){
-            String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION};
-            ActivityCompat.requestPermissions(BLE.this, permissions, 1);
-        }else{
-            Toast.makeText(BLE.this,"已拥有权限",Toast.LENGTH_LONG).show();// 有权限
+        // 检查蓝牙状态
+        if (mBtAdapter != null && mBtAdapter.isEnabled()) {
+            startScan(); // 如果蓝牙已开启，自动开始扫描
         }
-        //btnDisConnect.setOnClickListener(this);//BLE布局断开连接
 
-        //蓝牙开关
-        btSwitch.setChecked(false); //默认关闭
-        btSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @SuppressLint("MissingPermission")
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (b) {
-                    initBluetooth();
-                    scanBluetooth();
-                } else {
-                    Log.i(TAG, "取消扫描，清空设备列表，断开设备连接");
-                    mBtAdapter.cancelDiscovery();
-                    disConnected(connectFlag);
-                    mDevices.clear();
-                    mDeviceAdapter.notifyDataSetChanged();
-                }
-            }
-        });
+        // 保持UI初始化不变
+        btSwitch = findViewById(R.id.st_main_blue);
+        btSwitch.setChecked(false); // 强制设置为关闭状态
+        listView = findViewById(R.id.discover_device_list);
+        btnRefresh = findViewById(R.id.button_refresh);//刷新设备列表
+        mTvState = findViewById(R.id.tv_state);
 
-        //设备列表
+        // 设备列表适配器
         mDeviceAdapter = new DevicesAdapterList(this, mDevices);
         listView.setAdapter(mDeviceAdapter);
 
-        //点击某一个蓝牙触发跳转事件
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Devices table = mDevices.get(position); //获取点击item所在数组中的索引
-                BluetoothDevice device = mBtAdapter.getRemoteDevice(table.getAddress()); //获取蓝牙MAC地址
+        initBluetoothManager();// 初始化蓝牙管理器
+        setupListeners();// 设置UI事件监听
+        checkPermissions();// 检查并请求权限
+    }
 
-                //把当前的蓝牙设备地址传给心电的activity中去
-                Intent tableIntent = new Intent(BLE.this, ECGChart.class);
-                tableIntent.putExtra("deviceAdress", device);
-                startActivityForResult(tableIntent, 0);
-                Log.i(TAG, "连接蓝牙:" + table.getName() + " MAC地址:" + table.getAddress());
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-                //关闭蓝牙搜索，连接蓝牙之前关闭蓝牙搜索，因为搜索过程非常耗电。
-                if (ActivityCompat.checkSelfPermission(BLE.this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                    mBtAdapter.stopLeScan(mBtLeScanCallback);
-                    return;
-                }
-                //弹出已连接
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(BLE.this,"已连接蓝牙",Toast.LENGTH_LONG).show();
-                    }
-                });
+        // 确保单例已初始化
+        if (myBluetoothManager == null) {
+            myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());
+        }
+
+        // 更新UI状态
+        if (myBluetoothManager != null && myBluetoothManager.isConnected()) {
+            updateConnectionState("已连接");
+        } else {
+            updateConnectionState("未连接");
+        }
+    }
+
+    //重新初始化单例
+    private void initBluetoothManager() {
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        if (bluetoothManager != null) {
+            mBtAdapter = bluetoothManager.getAdapter();
+        }
+
+        // 设置开关初始状态为关闭（覆盖蓝牙适配器的实际状态）
+        btSwitch.setChecked(false);
+
+        // 检查设备是否支持BLE
+        if (mBtAdapter == null) {
+            Toast.makeText(this, "设备不支持蓝牙", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // 初始化蓝牙扫描器
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mBluetoothLeScanner = mBtAdapter.getBluetoothLeScanner();
+        }
+
+        // 恢复蓝牙开关状态
+        btSwitch.setChecked(mBtAdapter.isEnabled());
+    }
+
+    public boolean isBluetoothConnected() {
+        return mBtGatt != null && mConnectedDeviceAddress != null;
+    }
+
+    private void setupListeners() {
+        // 蓝牙开关监听
+        btSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                enableBluetooth();
+            } else {
+                stopScan();
+                //disconnectGatt();
+                clearDeviceList();
+                updateConnectionState("蓝牙已关闭");
             }
         });
-        //动态申请权限
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PermissionUtil.checkPermission(this, mRequestCode, permissions);
-        }
+
+        // 设备点击监听
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Devices device = mDevices.get(position);
+            connectToDevice(device);
+        });
+
+        // 刷新按钮监听，修改刷新按钮点击事件
+        btnRefresh.setOnClickListener(v -> {
+            if (mBtAdapter != null && mBtAdapter.isEnabled()) {
+                // 启动刷新动画
+                //Animation rotate = AnimationUtils.loadAnimation(this, R.anim.rotate_anim);
+                //btnRefresh.startAnimation(rotate);
+
+                stopScan();
+                clearDeviceList();
+                startScan();
+
+/*                // 10秒后停止动画（与扫描时间一致）
+                new Handler().postDelayed(() -> {
+                    btnRefresh.clearAnimation();
+                }, 10000);*/
+            } else {
+                Toast.makeText(this, "请先开启蓝牙", Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 
-    /**初始化蓝牙*/
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    private void checkPermissions() {
+        if (hasPermissions()) return;
+
+        List<String> missingPermissions = new ArrayList<>();
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                missingPermissions.add(permission);
+            }
+        }
+
+        if (!missingPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    missingPermissions.toArray(new String[0]),
+                    PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
     @SuppressLint("MissingPermission")
-    public void initBluetooth() {
-        mBtAdapter = BluetoothAdapter.getDefaultAdapter();//获取蓝牙默认适配器
-        //判断设备是否支持低功耗蓝牙
-        if (mBtAdapter == null) {
-            Log.i(TAG, "该设备不支持低功耗蓝牙！");
+    private void enableBluetooth() {
+        if (mBtAdapter == null) return;
+
+        // 检查并请求 BLUETOOTH_CONNECT 权限（仅 Android 12+ 需要）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                        PERMISSION_REQUEST_BLUETOOTH_CONNECT
+                );
+                return;
+            }
+        }
+
+        if (!mBtAdapter.isEnabled()) {
+            // 使用标准方式请求开启蓝牙
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         } else {
-            //打开蓝牙
-            if (!mBtAdapter.isEnabled()) {
-                mBtAdapter.enable();
-                Log.i(TAG, "已打开蓝牙");
+            startScan();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == RESULT_OK) {
+                startScan();
             } else {
-                Log.i(TAG, "蓝牙已打开");
+                btSwitch.setChecked(false);
+                Toast.makeText(this, "需要开启蓝牙才能扫描设备", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    /**查找低功耗蓝牙设备**/
     @SuppressLint("MissingPermission")
-    private void scanBluetooth() {
-        Log.i(TAG, "搜索低功耗蓝牙");
-        mBtAdapter.startLeScan(mBtLeScanCallback);
-        Log.i(TAG, "搜索结束");
+    private void startScan() {
+
+        // 检查蓝牙是否开启
+        if (mBtAdapter == null || !mBtAdapter.isEnabled()) {
+            Toast.makeText(this, "蓝牙未开启", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        //检查权限是否已拥有
+        if (!hasPermissions()) {
+            checkPermissions();
+            return;
+        }
+
+        if (mScanning) return;// 已经在扫描中
+
+        // 清空旧设备列表
+        clearDeviceList();
+        mScanning = true;
+
+        if (mBluetoothLeScanner != null) {
+            // 使用新API扫描 (Android 5.0+)
+            mBluetoothLeScanner.startScan(mScanCallback);
+            Log.d(TAG, "使用新API开始扫描");
+        } else {
+            // 兼容旧设备
+            mBtAdapter.startLeScan(mLeScanCallback);
+            Log.d(TAG, "使用旧API开始扫描");
+        }
+
+        // 10秒后停止扫描
+        mHandler.postDelayed(this::stopScan, 10000);
+        updateConnectionState("扫描中...");
+        Toast.makeText(this, "正在扫描设备...", Toast.LENGTH_SHORT).show();
     }
 
-    /**扫描结果回调**/
-    private final BluetoothAdapter.LeScanCallback mBtLeScanCallback = new BluetoothAdapter.LeScanCallback() {
-        @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission")
+    private void stopScan() {
+        if (!mScanning) return;
+
+        mScanning = false;
+        if (mBluetoothLeScanner != null) {
+            mBluetoothLeScanner.stopScan(mScanCallback);
+        } else if (mBtAdapter != null) {
+            mBtAdapter.stopLeScan(mLeScanCallback);
+        }
+        updateConnectionState(mDevices.isEmpty() ? "未发现设备" : "选择设备连接");
+    }
+
+    // 新扫描回调 (API 21+)
+    private final ScanCallback mScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            processDevice(result.getDevice());
+        }};
+
+    // 旧扫描回调 (API < 21)
+    private final BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            if (device.getName() == null) return;//跳过设备名字为空的蓝牙
-            //将蓝牙设备添加进Devices集合
-            Devices tmp = new Devices();
-            tmp.setName(device.getName());
-            tmp.setAddress(device.getAddress());
-            String str = device.getAddress();
-            //蓝牙查重
-            if (!mDuplicateData.contains(str)) {
-                mDuplicateData.add(str);
-                mDevices.add(tmp);
-            }
-            mDeviceAdapter.notifyDataSetChanged();
+            processDevice(device);
         }
     };
 
-/**后续对比考证可删除以下代码
- * 主要功能：连接蓝牙 ，已经在ECGChart中调用连接蓝牙，此处没有用到
- * 不同的是后者定义的函数没有context这一参数，没有this.mContext = context; 后续需要对比
- * @param device  目标设备；@param context 上下文对象
- */
-//    @SuppressLint("MissingPermission")
-//    private void connectBluetooth(BluetoothDevice device, Context context) {
-//        Log.i(TAG, "在BLE.Java, connectBluetooth函数中: 关闭蓝牙搜索");
-//        this.mContext = context;
-//        mBtAdapter.stopLeScan(mBtLeScanCallback);//关闭蓝牙搜索，连接蓝牙之前关闭蓝牙搜索
-//        //设置延迟，保证搜索完全关闭，再开始连接蓝牙。
-//        Handler handler = new Handler();
-//        handler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.i(TAG, "在BLE.Java,run函数中: 连接蓝牙");
-//                mBtGatt = device.connectGatt(context, false, mBtGattCallback);//连接蓝牙：autoConnect（布尔值，指示是否在可用时自动连接到BLE设备）
-//            }
-//        }, 1000);
-//    }
+    private void processDevice(BluetoothDevice device) {
+        runOnUiThread(() -> {
+            if (device == null) return;
 
-    /**蓝牙服务回调，建立通信**/
-    private final BluetoothGattCallback mBtGattCallback = new BluetoothGattCallback() {
-        //开启监听，即建立与设备的通信的首发数据通道，BLE开发中只有当上位机成功开启监听后才能与下位机收发数据.开启监听成功调用此方法。
-        @Override
-        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            super.onDescriptorWrite(gatt, descriptor, status);
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.i(TAG, "开启监听成功！");
-            }else{
-                Log.i(TAG, "没开启监听");
+            // 检查蓝牙权限
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return;
             }
-            //跳转到心电activity
-            Intent bleTocECG = new Intent(BLE.this,ECGChart.class);
-            startActivity(bleTocECG);
-            finish();//跳转的同时销毁程序
-        }
-    };
 
+            String name;
+            try {
+                name = device.getName();
+                if (name == null) return;
+            } catch (SecurityException e) {
+                // 处理权限异常
+                Log.e("Bluetooth", "No BLUETOOTH_CONNECT permission", e);
+                return;
+            }
 
-    /**断开蓝牙连接   @param b 判断蓝牙服务回调是否成功（防止空对象异常）
-     * b是空的,所以在BLE界面点击断开蓝牙根本没有反应**/
+            String address = device.getAddress();
+            if (!mDeviceMap.containsKey(address)) {
+                // 假设Devices类有相应的构造函数或使用setter方法
+                Devices newDevice = new Devices();
+                newDevice.setName(name);
+                newDevice.setAddress(address);
+
+                mDevices.add(newDevice);
+                mDeviceMap.put(address, newDevice);
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
     @SuppressLint("MissingPermission")
-    private void disConnected(boolean connectFlag) {
-        if (connectFlag) {
-            mBtGatt.disconnect();//断开连接
-            Log.i(TAG, "断开蓝牙连接");
-        }else {
-            Log.i(TAG, "connectFlag 是空的:"+ connectFlag);
+    private void connectToDevice(Devices device) {
+        // 移除所有旧连接逻辑
+        if (mBtGatt != null) {
+            mBtGatt.disconnect();
+            mBtGatt = null;
+        }
+        BluetoothDevice bluetoothDevice = mBtAdapter.getRemoteDevice(device.getAddress());
+        mBtGatt = bluetoothDevice.connectGatt(
+                this,
+                false,
+                mGattCallback, // 使用回调
+                BluetoothDevice.TRANSPORT_LE
+        );
+
+        // 保存到单例管理器，同时传递回调 - 确保参数顺序正确
+        myBluetoothManager.setConnected(
+                BLE.this,    // BLE 实例
+                mBtGatt,      // BluetoothGatt 实例
+                mGattCallback // BluetoothGattCallback 实例
+        );
+        // 添加设备地址保存
+        myBluetoothManager.setDeviceAddress(device.getAddress());
+    }
+    // Manager
+    public BluetoothGatt getBluetoothGatt() {
+        return mBtGatt;
+    }
+
+    // GATT回调处理
+    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            super.onConnectionStateChange(gatt, status, newState);
+            // 先检查权限
+            if (!checkBluetoothPermission()) {
+                requestBluetoothPermissions();
+                return;
+            }
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                Log.e(TAG, "连接失败: " + status); //连接状态监听
+                return;
+            }
+
+            runOnUiThread(() -> {
+                // 添加空值检查
+                if (myBluetoothManager == null) {
+                    Log.e(TAG, "myBluetoothManager is null in callback");
+                    myBluetoothManager = MyBluetoothManager.getInstance(BLE.this);
+
+                    if (myBluetoothManager == null) {
+                        Log.e(TAG, "Failed to initialize MyBluetoothManager in callback");
+                        return;
+                    }
+                }
+
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    mBtGatt = gatt;
+                    mConnectedDeviceAddress = gatt.getDevice().getAddress();
+                    //传递当前回调实例
+                    myBluetoothManager.setConnected(
+                            BLE.this,
+                            mBtGatt,
+                            mGattCallback  // 传递当前回调
+                    );
+                    myBluetoothManager.setDeviceAddress(mConnectedDeviceAddress);// 设置设备地址
+
+                    if (!mBtGatt.discoverServices()) {
+                        Log.e(TAG, "启动服务发现失败");
+                    }
+                    updateConnectionState("已连接，正在发现服务...");
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    updateConnectionState("连接断开");
+                    closeGatt();
+                    btSwitch.setChecked(false);
+                    // 通知单例断开连接
+                    if (myBluetoothManager != null) {
+                        myBluetoothManager.disconnect();
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            // 转发特征值变化事件
+            if (myBluetoothManager != null) {
+                myBluetoothManager.forwardCharacteristicChanged(gatt, characteristic);
+            }
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            super.onServicesDiscovered(gatt, status);
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                runOnUiThread(() -> {
+                    Toast.makeText(BLE.this, "蓝牙连接成功", Toast.LENGTH_SHORT).show();
+                    updateConnectionState("已连接");
+
+                    // 跳转到选择页面
+                    Intent intent = new Intent(BLE.this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
+                });
+            }
+        }
+    };
+
+    private void closeGatt() {
+        if (mBtGatt != null) {
+            // 检查 BLUETOOTH_CONNECT 权限
+            if (ContextCompat.checkSelfPermission(
+                    getApplicationContext(),
+                    Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED) {
+                try {
+                    mBtGatt.disconnect();
+                    mBtGatt.close();
+                } catch (SecurityException e) {
+                    Log.e("Bluetooth", "BLUETOOTH_CONNECT permission denied", e);
+                }
+            } else {
+                Log.e("Bluetooth", "No BLUETOOTH_CONNECT permission to close GATT");
+            }
+            mBtGatt = null;
+            mConnectedDeviceAddress = null;
+        }
+        // 关闭 GATT 后，复位 Switch 按钮状态
+        btSwitch.setChecked(false);
+        myBluetoothManager.disconnect();
+    }
+
+    private void clearDeviceList() {
+        mDevices.clear();
+        mDeviceMap.clear();
+        mDeviceAdapter.notifyDataSetChanged();
+    }
+
+    private void updateConnectionState(String state) {
+        if (mTvState != null) {
+            mTvState.setText("状态: " + state);
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    private boolean hasPermissions() {
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-    /**权限申请结果回调**/
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopScan();
+        //disconnectGatt();
+        closeGatt();
+        btSwitch.setChecked(false);// 确保退出时 Switch 复位
+    }
+
+    //处理权限回调
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        boolean hasPermissionDismiss = false;//是否授权标识符
-        if(requestCode ==1){
-            if(grantResults.length>0 &&grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "申请成功！", Toast.LENGTH_SHORT).show();
-            }else{//未授权
-                Toast.makeText(this, getString(R.string.please_grant_app_permission), Toast.LENGTH_SHORT).show();
+
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            // 原有权限处理逻辑...
+        }
+        // 处理 BLUETOOTH_CONNECT 权限请求
+        else if (requestCode == PERMISSION_REQUEST_BLUETOOTH_CONNECT) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 权限已授予，重试启用蓝牙
+                enableBluetooth();
+            } else {
+                // 权限被拒绝
+                btSwitch.setChecked(false);
+                Toast.makeText(this, "需要蓝牙连接权限才能开启蓝牙", Toast.LENGTH_SHORT).show();
             }
         }
-        if (mRequestCode == requestCode) {
-            for (int results : grantResults) {
-                //如果有未授权权限
-                if (results == -1) {
-                    hasPermissionDismiss = true;
-                    break;
-                }
+        // 处理 MyBluetoothManager 可能需要的权限请求
+        if (requestCode == MyBluetoothManager.BLUETOOTH_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 权限已授予，执行断开操作
+                myBluetoothManager.disconnect();
             }
-            if (hasPermissionDismiss)
-                Toast.makeText(this, getString(R.string.please_grant_app_permission), Toast.LENGTH_SHORT).show();
         }
     }
 
-    /**由于父类是一个抽象类，里边有抽象方法，当子类继承父类时，需要使用该该抽象方法
-     * 所以设置了一个没有用的点击事件使用该抽象方法，删除就报错，不信你试试~ **/
-    @SuppressLint({"MissingPermission", "NonConstantResourceId"})
+    private boolean checkBluetoothPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) ==
+                    PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
+    }
+
+    private void requestBluetoothPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                requestPermissions(
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                        BLUETOOTH_PERMISSION_REQUEST_CODE
+                );
+            } catch (Exception e) {
+                Log.e(TAG, "请求蓝牙权限失败", e);
+                Toast.makeText(this, "无法请求蓝牙权限", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /*以下是连接完成蓝牙后的跳转操作*/
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.icon_BlueTooth:
-                Toast.makeText(BLE.this, "Oops,你发现了华点,但这似乎并没有任何用处~~", Toast.LENGTH_SHORT).show();//点击蓝牙图标，正经人会点击右侧的开关而不是这个图标
-                break;
+        // 检查是否已连接到蓝牙设备
+        if (mBtGatt != null && mConnectedDeviceAddress != null) {
+/*            // 已连接，跳转到 MainActivity，这一步在BluetoothGattCallback mGattCallback = new BluetoothGattCallback() 中已经实现了，所以这个点击事件可有可无
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish(); // 可选：关闭当前 Activity*/
+        } else {
+            // 未连接，保持原有的点击事件处理
+            Toast.makeText(this, "请先连接蓝牙设备", Toast.LENGTH_SHORT).show();
         }
     }
-
 }
-

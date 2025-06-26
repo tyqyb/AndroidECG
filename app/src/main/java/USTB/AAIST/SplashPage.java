@@ -17,14 +17,17 @@ public class SplashPage extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);//全屏显示
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_splash);
-
+        // 隐藏标题栏
+        if (getSupportActionBar()!=null){
+            getSupportActionBar().hide();
+        }
         //状态栏颜色
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(Color.parseColor("#107C8A"));
+        window.setStatusBarColor(Color.parseColor("#F9F9F9"));
 
         new Handler().postDelayed(() -> {
-            startActivities(new Intent[]{new Intent().setClass(this, MainActivity.class)});
+            startActivities(new Intent[]{new Intent().setClass(this, BLE.class)});
             overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         }, 1000);
     }

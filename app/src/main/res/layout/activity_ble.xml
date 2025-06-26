@@ -68,6 +68,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_marginLeft="3dp"
                 android:text="@string/search_device"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
@@ -81,10 +82,12 @@
             android:layout_gravity="center"
             android:layout_marginEnd="15dp"
             android:showText="false"
-            android:splitTrack="false" />
+            android:splitTrack="false"
+            android:checked="false" />
     </RelativeLayout>
+
     <!--断开连接-->
-<!--    <LinearLayout
+   <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:layout_marginLeft="10dp"
@@ -98,15 +101,27 @@
             android:layout_height="25dp"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="2dp"
-            android:src="@mipmap/icon_disconnect" />
+            android:src="@drawable/refresh" />
         <Button
-            android:id="@+id/button_disconnect"
             android:layout_width="364dp"
             android:layout_height="70dp"
+            android:id="@+id/button_refresh"
             android:background="@null"
-            android:text="@string/disconnect"
+            android:layout_marginLeft="3dp"
+            android:text="刷新列表"
             android:textAlignment="textStart"
             android:textColor="@color/black"
             android:textSize="16sp" />
-    </LinearLayout>-->
+    </LinearLayout>
+
+    <!-- 状态显示区域 -->
+    <TextView
+        android:id="@+id/tv_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:paddingBottom="8dp"
+        android:text="状态: 未连接"
+        android:textSize="16sp" />
+
 </LinearLayout>

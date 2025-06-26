@@ -3,7 +3,6 @@ package USTB.AAIST;
  *   APP打包后修改SpeechUtility.createUtility中的APPID
  * **/
 import static USTB.AAIST.utils.DataFormatUtil.arrayToHex;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import android.Manifest;
@@ -19,28 +18,23 @@ import android.bluetooth.BluetoothProfile;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechUtility;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.UUID;
 import USTB.AAIST.utils.DataFormatUtil;
@@ -48,9 +42,9 @@ import USTB.AAIST.utils.FileUtils;
 import USTB.AAIST.utils.SoundTipUtil;//语音播报
 import USTB.AAIST.view.Wave;
 import android.view.WindowManager;
-import USTB.AAIST.view.RPView;
-import java.util.Timer;
-import java.util.TimerTask;
+import com.chaquo.python.PyObject;
+import java.util.Objects;
+import java.util.Arrays;
 
 /**
  * //设置开启之后，才能在onCharacteristicRead()这个方法中收到数据。的if判断中进入了备用方法测试,因此没有接收到数据
@@ -58,40 +52,45 @@ import java.util.TimerTask;
  * 20240722为添加按钮监视，将public class ECGChart extends AppCompatActivity{} 改为public class ECGChart extends AppCompatActivity implements View.OnClickListener{}
  * **/
 public class ECGChart extends AppCompatActivity implements View.OnClickListener{
-    //20240712添加以下两行代码检验是否正确读到数据
-    private static final String ECBLEChineseTypeGBK = "gbk";
-    private static String ecBLEChineseType = ECBLEChineseTypeGBK;
-    //20240722添加以下代码，蓝牙连接标志，重写onConnectionStateChange内部逻辑代码
-    private static boolean connectFlag = false;
-
+    private MyBluetoothManager myBluetoothManager; // 添加蓝牙管理器引用
     private static final String TAG = "ECGChart";
-    private final static String SERVICE_EIGENVALUE_SEND = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，发送
-    private final static String SERVICE_EIGENVALUE_READ = "0000ffe2-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，接收
+
+    private final static String SERVICE_EIGENVALUE_READ = "0000ffe1-0000-1000-8000-00805f9b34fb";//蓝牙的特征值，接收
+    private static final String SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    private static final String CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";//特征值等价于SERVICE_EIGENVALUE_READ
+    private static final UUID CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
+    private ECGChart.ConnectionState mConnectionState = ECGChart.ConnectionState.DISCONNECTED;
+    private BluetoothGatt mBtGatt; // 统一使用变量名
+    private BluetoothGattCharacteristic mNotifyCharacteristic;
+    private enum ConnectionState {
+        DISCONNECTED,
+        CONNECTING,
+        CONNECTED,
+        DISCONNECTING
+    }
+
+
     private BluetoothGattCharacteristic mNeedCharacteristic;
+    private static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 1001; // 可以是任意唯一整数
     private Handler mTimeHandler = new Handler();
-    private BluetoothGatt mBtGatt;
     Wave waveShowView;
-    BluetoothDevice device = null;
     TextView txtECG;
-    private ArrayList<Double> offlineRateData = new ArrayList<>();//记录离线心电数据
-    private ArrayList<Double> offlineRespiratoryData = new ArrayList<>();//处理离线呼吸波所需要的原始数据
-    ArrayList<Double>   offlineRateOrginateData=new ArrayList<Double>();//心电原始信号
+    TextView Bitchar;
+    private TextView tvReceivedData;
+
+    private volatile boolean isListening = true;
+    private InputStream inputStream;
+    private byte[] buffer = new byte[1024];
+    private byte[] dataArray = new byte[0];
     String HexOriginateHeartData;
+
+    private ArrayList<Double> offlineRateData = new ArrayList<>();//记录离线心电数据
+    //private ArrayList<Double> offlineRespiratoryData = new ArrayList<>();//处理离线呼吸波所需要的原始数据
+    ArrayList<Double>   offlineRateOrginateData=new ArrayList<Double>();//心电原始信号
     private Queue<Double> RPdataQ = new LinkedList<Double>();//为心电数据一个个展示设置的队列
     int HeartratelistInt=0;
 
-
-    private int flag = 0;//相当于connectFlag
-    private  ArrayList<Double> res488=new ArrayList<>();//如果res追加到了一个波的大小，就计算呼吸波
-    StringBuilder sb = new StringBuilder();
-    private TextView mTvReceive;
-//    WaveShowView waveShowView2;//呼吸波相关参数
-//    Respiratory_Wave waveShowView2;
-//    RPView waveShowView2;
-//    Respiratory_Wave waveShowView2;
-//    Wave waveShowView;
-//    Ecg_View ecg_view;
-//    WaveShowView waveShowView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +101,32 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
             getSupportActionBar().hide();
         }
 
-        SpeechUtility.createUtility(ECGChart.this, SpeechConstant.APPID +"=5f16ff0d");
+        // 初始化蓝牙管理器
+        myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());
+        // 检查蓝牙是否已连接
+        if (myBluetoothManager.isDeviceConnected()) {
+            mBtGatt = myBluetoothManager.getBluetoothGatt();// 使用已建立的Gatt连接
+            if (mBtGatt != null) {
+                // 先检查权限
+                if (!checkBluetoothPermission()) {
+                    requestBluetoothPermissions();
+                    return;
+                }
+                // 设置回调
+                mBtGatt.connect(); // 确保连接已建立
+                mBtGatt = myBluetoothManager.getBluetoothDevice().connectGatt(this, false, mBtGattCallback);
+                mBtGatt.discoverServices(); // 开始服务发现
+            } else {
+                Toast.makeText(this, "蓝牙连接异常", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }  else {
+            Toast.makeText(this, "蓝牙未连接", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        tvReceivedData = findViewById(R.id.Bitchar);
+        SpeechUtility.createUtility(ECGChart.this, SpeechConstant.APPID +"=5f16ff0d");//语音组件
 
         //ChartView功能按钮的选择点击事件
         findViewById(R.id.EcgChartView_disconnect).setOnClickListener(this);
@@ -120,8 +144,6 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
         }
 
         initUI();
-        getBleAddress();//接受蓝牙地址
-        connectBluetooth(device);
 
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
@@ -136,64 +158,182 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
         handler.postDelayed(runnable, 7000);
     }
 
+
+    @SuppressLint("MissingPermission")
+    private void setupNotification(BluetoothGatt gatt) {
+
+        if (gatt == null) {
+            Log.e(TAG, "setupNotification: BluetoothGatt is null");
+            handleConnectionFailure();
+            return;
+        }
+
+        if (!checkBluetoothPermission()) {
+            requestBluetoothPermissions();
+            return;
+        }
+
+        BluetoothGattService service = gatt.getService(UUID.fromString(SERVICE_UUID));
+        if (service == null) {
+            Log.e(TAG, "未找到服务: " + SERVICE_UUID);
+            handleConnectionFailure();
+            return;
+        }
+
+        mNotifyCharacteristic = service.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID));
+        if (mNotifyCharacteristic == null) {
+            Log.e(TAG, "未找到特征: " + CHARACTERISTIC_UUID);
+            handleConnectionFailure();
+            return;
+        }
+
+        gatt.setCharacteristicNotification(mNotifyCharacteristic, true);// 设置通知
+
+        // 配置CCC描述符
+        BluetoothGattDescriptor descriptor = mNotifyCharacteristic.getDescriptor(CCC_DESCRIPTOR_UUID);
+        if (descriptor != null) {
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            gatt.writeDescriptor(descriptor);
+        } else {
+            Log.w(TAG, "未找到CCC描述符，尝试直接启用通知");
+            gatt.setCharacteristicNotification(mNotifyCharacteristic, true);
+        }
+    }
+
+
+    // 设置特征通知，在服务发现后自动调用
+    @SuppressLint("MissingPermission")
+    private void setupCharacteristicNotification() {
+
+        //空白检查
+        Log.i(TAG, "设置特征通知...");
+        if (mBtGatt == null) {
+            Log.e(TAG, "setupCharacteristicNotification: BluetoothGatt is null");
+            return;
+        }
+
+        // 获取服务
+        BluetoothGattService service = mBtGatt.getService(UUID.fromString(SERVICE_UUID));
+        if (service == null) {
+            Log.e(TAG, "未找到指定服务");
+            Toast.makeText(this, "未找到蓝牙服务", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 获取特征
+        mNeedCharacteristic = service.getCharacteristic(UUID.fromString(SERVICE_EIGENVALUE_READ));
+        if (mNeedCharacteristic == null) {
+            Log.e(TAG, "未找到指定特征");
+            Toast.makeText(this, "未找到蓝牙特征", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 设置通知
+        if (!mBtGatt.setCharacteristicNotification(mNeedCharacteristic, true)) {
+            Log.e(TAG, "设置特征通知失败");
+            Toast.makeText(this, "无法设置蓝牙通知", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 设置描述符
+        BluetoothGattDescriptor descriptor = mNeedCharacteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+        if (descriptor != null) {
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            if (!mBtGatt.writeDescriptor(descriptor)) {
+                Log.e(TAG, "写入描述符失败");
+            }
+        } else {
+            Log.e(TAG, "未找到通知描述符");
+        }
+
+        Log.i(TAG, "特征通知设置完成");
+    }
+
+
+    //检查权限相关
+    private boolean checkBluetoothPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) ==
+                    PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
+    }
+    //检查权限相关
+    private void requestBluetoothPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                requestPermissions(
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                        BLUETOOTH_PERMISSION_REQUEST_CODE
+                );
+            } catch (Exception e) {
+                Log.e(TAG, "请求蓝牙权限失败", e);
+                Toast.makeText(this, "无法请求蓝牙权限", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
     /**初始化控件
      * @ mTvReceive，find id
      * @ waveShowView,find 心电绘图区域id
-     * @ waveShowView2，find 心电绘图呼吸波区域id
      * @ txtECG，更新显示心电数值
      * */
     private void initUI() {
         waveShowView = findViewById(R.id.waveShowView);
         txtECG = findViewById(R.id.txtECG);
-        //mTvReceive = findViewById(R.id.mTvReceive);//源呼吸波数字
-        //waveShowView2 = findViewById(R.id.waveShowView2);//原呼吸波视图
+        Bitchar = findViewById(R.id.Bitchar);
     }
 
-    /**接受点击的某一个蓝牙地址
-     * @ device 传递给device
-     * 如果发现没有该太大的地方点击蓝牙连接时退出，大概率从logcat可以看出是此处的问题，原因可能是接收的地址为空，
-     * 但实际上之前也这样就没问题啊，再出现的话，将下面代码重新CV
-     * */
-    private void getBleAddress() {
-        Intent bleAddressIntent = getIntent();
-        device = bleAddressIntent.getParcelableExtra("deviceAdress");
-        //进行一个低通蓝牙通讯
-        Log.d("In ECGChart.java,getBleAddress() function", "收到MAC地址：  " + device.getAddress());
+    /**处理接收到的数据点**/
+    private void processDataPoints(ArrayList<Double> dataPoints) {
+        // 保存原始数据
+        for (Double point : dataPoints) {
+            offlineRateOrginateData.add(point);
+            offlineRateData.add(point);
+        }
+
+        // 绘制波形
+        for (Double point : dataPoints) {
+            waveShowView.showLine(point);
+        }
+
+        // 更新UI显示接收到的数据点数量
+        Bitchar.setText("接收点: " + offlineRateOrginateData.size());
+
+        // 更新心率显示
+        // txtECG.setText(HeartratelistInt + " BPM");
     }
 
-    /**连接蓝牙
-     *  @ device  目标设备**/
-    @SuppressLint("MissingPermission")
-    private void connectBluetooth(BluetoothDevice device) {
-        Log.i(TAG,"蓝牙搜索状态：关闭蓝牙搜索"); //设置1s延迟，保证搜索完全关闭，再开始连接蓝牙。
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.i(TAG,"连接蓝牙");
-                mBtGatt = device.connectGatt(ECGChart.this, false, mBtGattCallback);//连接蓝牙：autoConnect（布尔值，指示是否在可用时自动连接到BLE设备）
-            }
-        }, 1000);
-    }
 
     /**蓝牙服务回调，即建立通信**/
     private final BluetoothGattCallback mBtGattCallback = new BluetoothGattCallback() {
-        //成功连接到设备调用此方法
-        @SuppressLint("MissingPermission")
+
+        @SuppressLint("MissingPermission")  //这句可以忽略下面的需要权限检查
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            Log.e(TAG, "onConnectionStateChange中，状态=" + status + "||" + "新状态=" + newState);
-            //判断蓝牙是否连接成功
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                gatt.discoverServices();//发现设备服务 去获取服务
-                Log.i(TAG,"在onConnectionStateChange()函数中: 连接成功");
-                connectFlag = true;//20240722
+                Log.i(TAG, "蓝牙已连接，开始发现服务");
+                gatt.discoverServices();
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "蓝牙已断开");
             }
-            else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                mBtGatt.close();//关闭回调服务（等于断开蓝牙连接）
-                Log.i(TAG, "在onConnectionStateChange()函数中: 连接失败");
-                connectFlag = false;//20240722
+        }
+
+        /**发现服务回调**/
+        @SuppressLint("MissingPermission")
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            super.onServicesDiscovered(gatt, status);
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.i(TAG, "服务发现成功");
+                runOnUiThread(() -> {
+                    setupNotification(gatt); // 在这里设置通知
+                    setupCharacteristicNotification();// 服务发现成功后设置特征通知
+                });
+            } else {
+                Log.e(TAG, "服务发现失败: " + status);
             }
         }
 
@@ -201,6 +341,7 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
          * 调用mBluetoothGatt.discoverServices();方法后，onServicesDiscovered（）这个方法会被调用，说明发现当前设备了。
          * 然后可以在里面去获取BluetoothGattService和BluetoothGattCharacteristic。
          **/
+        /*     //20250619注释掉
         @SuppressLint("MissingPermission")
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
@@ -263,7 +404,8 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
                 }
             }
             Log.e(TAG, "==========================================================================================" );
-        }
+        }*/
+
 
         /**开启监听，建立与设备的通信的收发数据通道，BLE开发中只有当上位机成功开启监听后才能与下位机收发数据.开启监听成功调用此方法**/
         @Override
@@ -282,165 +424,85 @@ public class ECGChart extends AppCompatActivity implements View.OnClickListener{
          * 理清数据传输的格式，需要十六进制发送，按着十六进制接收，将其转换名为res的List列表 随后进行python的处理调用，关键问题在于 ArrayList<Double> res = DataFormatUtil.hexToList(str);
          * 中的HexToList肯存在问题，处理后的数据直接变为了 -2.554375,-2.52225,-2.457875,-3.774375,-2.554375,-2.55425,-2.488875,。。。
          * **/
+
+        /**数据接收回调**/
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            super.onCharacteristicChanged(gatt, characteristic);//20240712
-
-            byte[] value = characteristic.getValue(); //value为蓝牙发送的原始数据
-
-            System.out.println("传输的Value数据格式:"+value);//value：[B@aa67a61、[B@a31d986、、、、
-
-            /**开发完后可删除，于20240712添加的功能
-             * 主要功能：logcat输出检验是否正确的接收到了数据，是没问题的
-             * 添加的代码有：super.onCharacteristicChanged(gatt, characteristic);以及对应的两个private、if (value != null) 判断
-             **/
-//            if (value != null) {
-//                String str = "";
-//                if (Objects.equals(ecBLEChineseType, ECBLEChineseTypeGBK)) {
-//                    try {
-//                        str = new String(value, "GBK");
-//                    } catch (Throwable ignored) {
-//                    }
-//                } else {
-//                    str = new String(value);
-//                }
-//                String strHex = arrayToHex(value);//将string转为Hex
-//                Log.e("DataReceiveCheck", "读取成功[string]:" + str);
-//                Log.e("DataReceiveCheck", "读取成功[hex]:" + strHex);
-//            }
-
-            String str = arrayToHex(value);//字符串类型的数，返回的是去掉尾空格，大写的Hex字符串
-            System.out.println("经过arrayToHex后的str数据格式:"+str);//2D 30 2E 31 31 33 0D 0A 2D 30 2E 30 39 32 0D 0A 2D 30 2E 30 37 37 0D 0A ，转字符串后为-0.113 （0A（回车））-0.092（0A（回车））-0.077，但仍存在数据截断
-            Log.i(TAG, "DataFormatUtil.arrayToHex(value)：：" + DataFormatUtil.arrayToHex(value));//2D 30 2E 31 31 33 0D 0A 2D 30 2E 30 39 32 0D 0A 2D 30 2E 30 37 37 0D 0A
-
-            HexOriginateHeartData+=str;//保存至txt所需的变量20240724
-
-            ArrayList<Double> res = DataFormatUtil.hexToList(str);//关键点，将hex转为List列表
-            //打印res内容
-            for(int i=0; i<res.size();i++){
-                System.out.print(res.get(i)+",");//res输出：-2.554375,-2.52225,-2.457875,-3.774375,-2.554375,-2.55425,-2.488875,
-            }//改之后循环内的输出应为十六进制数组
-
-            System.out.println("==在ECGChart.Java中, res大小为==:"+res.size());//大小会自增，488个数据最后输出打印的大小为245
-
-//            ArrayList<Double> cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN = DataFormatUtil.Filter(res);//经过滤波之后的点
-            ArrayList<Double> Heartratelist = new ArrayList<Double>();//心电数据
-
-
-            ArrayList<Double> RespiratoryWavelist = new ArrayList<Double>();//呼吸波数据
-
-            /**将原始心电信号存储到offlineRateOrginateData数组当中，转存到txt当中**/
-            for(int i=0;i<res.size();i++){
-                offlineRateOrginateData.add(res.get(i));
+            super.onCharacteristicChanged(gatt, characteristic);
+            // 确保是需要的特征
+            if (!characteristic.getUuid().toString().equals(SERVICE_EIGENVALUE_READ)) {
+                return;
             }
-            //大小会自增，488个数据最后输出打印的大小为1884，最终保存到手机中的也是1884个数据
-            System.out.println("==在ECGChart.Java中, offlineRateOrginateData大小为==:"+offlineRateOrginateData.size());
-            System.out.print("——————————————————————————————————————————————————————————————————————————————————————————————");
 
-        //——————————————————————————————————————————————————————主要修改以上代码内容————————————————————————————————————————————————————————————————
+            byte[] data = characteristic.getValue();
+            if (data == null || data.length == 0) {
+                Log.w(TAG, "收到空数据");
+                return;
+            }
+            // 打印原始数据用于调试
+            Log.d(TAG, "收到数据, 长度: " + data.length);
+            Log.d(TAG, "原始数据: " + Arrays.toString(data));
+            // 转换为十六进制字符串
+            String hexString = DataFormatUtil.arrayToHex(data);
+            Log.d(TAG, "十六进制数据: " + hexString);
+            // 解析数据
+            ArrayList<Double> dataPoints = DataFormatUtil.hexToList(data);
+            if (dataPoints == null || dataPoints.isEmpty()) {
+                Log.w(TAG, "数据解析失败");
+                return;
+            }
+            Log.d(TAG, "解析出数据点: " + dataPoints.size());
 
-            /**将原始心电信号经过调用python代码进行滤波，并计算心率（滤波算法以及心率的计算均在python代码当中【ecgFilter.py】）*/
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    //20240727注释以下代码：/**将Java的ArrayList对象传入Python中使用**/~~~txtECG.setText(HeartratelistInt + " ");
-                    //为的是直接显示标准的数图像
-
-//                    ///**将Java的ArrayList对象传入Python中使用**/
-//                    Python py = Python.getInstance();//创建连接Python的接口
-//                    ///**1.进行数据滤波**/
-//                    PyObject obj = py.getModule("ecgFilterNew").callAttr("ecgFilter", res.get(0),res.get(1),res.get(2),res.get(3),res.get(4),res.get(5),res.get(6),res.get(7),res.get(8),res.get(9),res.get(10),res.get(11),res.get(12),res.get(13),res.get(14),res.get(15),res.get(16),res.get(17),res.get(18),res.get(19),res.get(20),res.get(21),res.get(22),res.get(23),res.get(24),res.get(25),res.get(26),res.get(27),res.get(28),res.get(29),res.get(30),res.get(31),res.get(32),res.get(33),res.get(34),res.get(35),res.get(36),res.get(37),res.get(38),res.get(39),res.get(40),res.get(41),res.get(42),res.get(43),res.get(44),res.get(45),res.get(46),res.get(47),res.get(48),res.get(49),res.get(50),res.get(51),res.get(52),res.get(53),res.get(54),res.get(55),res.get(56),res.get(57),res.get(58),res.get(59),res.get(60),res.get(61),res.get(62),res.get(63),res.get(64),res.get(65),res.get(66),res.get(67),res.get(68),res.get(69),res.get(70),res.get(71),res.get(72),res.get(73),res.get(74),res.get(75),res.get(76),res.get(77),res.get(78),res.get(79),res.get(80),res.get(81),res.get(82),res.get(83),res.get(84),res.get(85),res.get(86),res.get(87),res.get(88),res.get(89),res.get(90),res.get(91),res.get(92),res.get(93),res.get(94),res.get(95),res.get(96),res.get(97),res.get(98),res.get(99),res.get(100),res.get(101),res.get(102),res.get(103),res.get(104),res.get(105),res.get(106),res.get(107),res.get(108),res.get(109),res.get(110),res.get(111),res.get(112),res.get(113),res.get(114),res.get(115),res.get(116),res.get(117),res.get(118),res.get(119),res.get(120),res.get(121));
-//                    List<PyObject> pyList = obj.asList();//将从python中取得的值进行java转换
-//                    System.out.println("在 ECGChart.Java Runnable()函数中, pyList大小为:"+pyList.size());
-//                    for (int i = 0; i < pyList.size(); i++) {
-//                        Double x = pyList.get(i).toDouble();
-//                        //为离线分析做处理
-//                        offlineRateData.add(x);
-//                        offlineRespiratoryData.add(x);
-//                        Heartratelist.add(x);//为绘制心电图做处理
-//                    }
-//                    //只有下面这句输出打印的offlineRateData的大小与实际发送的数据大小一致，实际发送488个
-//                    System.out.println("在 ECGChart.Java Runnable()函数中, offlineRateData 大小为:"+offlineRateData.size());
-//
-//                    ///**2.通过python调用计算心率**/
-//                    PyObject obj2 = py.getModule("ecgFilterNew").callAttr("get_hear_rate");
-//                    Integer rate = obj2.toJava(Integer.class);
-//                    HeartratelistInt = rate.intValue();
-//                    System.out.println("在 ECGChart.Java Runnable()函数中, 心率为:"+HeartratelistInt);
-//                    txtECG.setText(HeartratelistInt + " ");
-
-                    //直接绘图时离线图片没有数据，在OfflineRateActivity.java中offline_ratedata因注释上面两个步骤是空的了，导致后面的数据都是空的，所以没图像
-                    //20240803添加以下代码解决
-                    for (int i = 0; i < res.size(); i++) {
-                        offlineRateData.add(res.get(i));
-                        offlineRateOrginateData.add(res.get(i));
-                    }
-
-                    /**3.展示心电图数据**/
-                    ////下面这句输出打印的Heartratelist的大小与实际发送的数据大小一致，实际发送488个
-                    System.out.println("在 ECGChart.Java Runnable()函数中, Heartratelist.size()大小为："+ res.size());//20240726将Heartratelist改为res直接测试原数据绘图
-                    for (int i = 0; i < res.size(); i++) {
-                        waveShowView.showLine(res.get(i));
-                    }
-
-//                    System.out.println("obj3");
-//                    List<PyObject> pyList3 = obj3;
-//                    for (int i = 0; i < pyList3.size(); i++) {
-//                        Double x = pyList.get(i).toDouble();
-//                        //为绘制呼吸波做处理
-//                        RespiratoryWavelist.add(x);
-//
-//                    }
-//                    //展示呼吸波
-//                    for (int i = 0; i < RespiratoryWavelist.size(); i++) {
-//                        waveShowView2.showLine(RespiratoryWavelist.get(i));
-//                    }
-                }
-            });
-
-/**呼吸波相关，通过python调用进行呼吸波的提取**/
-//            RPdataQ.addAll(res);
-//            System.out.println("RPdataQ:"+RPdataQ.size());
-//
-//            res488.addAll(res);
-//            System.out.println("res488 size::"+res488.size());
-//            ArrayList<Double> respiratoryData = new ArrayList<>();
-//            if(res488.size()==1464){
-//                respiratoryData= RespiratoryCalc.respiratoryCalc(res488);
-//                System.out.println("respiratoryData");
-//                System.out.println("size:"+respiratoryData.size());
-//                System.out.println(respiratoryData.toString());
-//                res488.clear();
-//            }
-//            //画呼吸波
-//            for (int i = 0; i < respiratoryData.size(); i++) {
-////                System.out.println("list of for:"+list.get(i).getClass());
-////                ecg_view.showLine(res.get(i));
-//                waveShowView2.showLine(respiratoryData.get(i));
-//            }
-//            for (int i = 0; i < res.size(); i++) {
-////                System.out.println("list of for:"+list.get(i).getClass());
-////                ecg_view.showLine(res.get(i));
-//                waveShowView.showLine(res.get(i));
-//            }
-
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    Python py = Python.getInstance();// 将Java的ArrayList对象传入Python中使用
-//                    //拿到呼吸波数据
-//                    PyObject obj3 = py.getModule("ecgFilter").callAttr("getRespiratorywave", cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(0), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(1), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(2), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(3), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(4), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(5), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(6), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(7), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(8), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(9), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(10), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(11), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(12), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(13), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(14), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(15), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(16), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(17), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(18), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(19), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(20), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(21), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(22), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(23), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(24), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(25), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(26), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(27), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(28), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(29), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(30), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(31), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(32), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(33), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(34), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(35), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(36), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(37), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(38), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(39), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(40), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(41), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(42), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(43), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(44), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(45), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(46), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(47), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(48), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(49), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(50), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(51), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(52), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(53), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(54), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(55), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(56), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(57), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(58), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(59), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(60), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(61), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(62), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(63), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(64), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(65), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(66), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(67), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(68), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(69), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(70), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(71), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(72), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(73), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(74), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(75), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(76), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(77), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(78), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(79), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(80), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(81), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(82), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(83), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(84), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(85), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(86), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(87), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(88), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(89), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(90), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(91), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(92), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(93), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(94), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(95), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(96), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(97), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(98), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(99), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(100), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(101), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(102), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(103), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(104), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(105), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(106), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(107), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(108), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(109), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(110), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(111), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(112), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(113), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(114), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(115), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(116), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(117), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(118), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(119), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(120), cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN.get(121));
-//                    //将从python中取得的值进行java转换
-//                    if(obj3!=null){
-//                        List<PyObject> pyList3 = obj3.asList();
-//                        System.out.println("obj3");
-//                        System.out.println(obj3);
-//                    }
-//                }
-//            });
-
+            // 在主线程更新UI
+            runOnUiThread(() -> processDataPoints(dataPoints));
         }
+
+
     };
+
+    private void handleConnectionFailure() {
+        runOnUiThread(() -> {
+            Toast.makeText(ECGChart.this, "蓝牙连接失败", Toast.LENGTH_LONG).show();
+            disconnectGatt();
+            finish();
+        });
+    }
+    @SuppressLint("MissingPermission")
+    private void disconnectGatt() {
+        if (mBtGatt == null) return;
+
+        mConnectionState = ECGChart.ConnectionState.DISCONNECTING;
+        try {
+            mBtGatt.disconnect();
+            mBtGatt.close();
+        } catch (Exception e) {
+            Log.e(TAG, "断开连接时出错", e);
+        } finally {
+            mBtGatt = null;
+            mConnectionState = ECGChart.ConnectionState.DISCONNECTED;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 先检查权限
+        if (!checkBluetoothPermission()) {
+            requestBluetoothPermissions();
+            return;
+        }
+
+        // 取消通知
+        if (mBtGatt != null) {
+            try {
+                mBtGatt.disconnect();
+                mBtGatt.close();
+            } catch (Exception e) {
+                Log.e(TAG, "关闭Gatt连接时出错", e);
+            }
+            mBtGatt = null;
+        }
+    }
 
     /**触发返回按钮并断开蓝牙连接
      * 后续可删除**/

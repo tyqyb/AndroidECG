@@ -75,7 +75,7 @@ public class Wave  extends View {
         super.onLayout(changed, left, top, right, bottom);
     }
 
-/**多次调用进行绘制**/
+    /**多次调用进行绘制**/
     @Override
     protected void onDraw(Canvas canvas) {
         DrawGrid(canvas);
@@ -93,7 +93,7 @@ public class Wave  extends View {
         super.onDraw(canvas);
     }
 
-/**画背景网格**/
+    /**画背景网格**/
     private void DrawGrid(Canvas canvas){
         //横线
         for (int i = 1 ; i < grid_hori + 2 ; i ++){
@@ -127,7 +127,7 @@ public class Wave  extends View {
         }
     }
 
-/**画数据图**/
+    /**画数据图**/
     private void DrawECGWave(Canvas canvas){
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
@@ -152,7 +152,7 @@ public class Wave  extends View {
         for (int i = iXor; i < this.refreshList.size(); i ++){
             float nnn = xori + gap_x * i +  x_changed;
             if (nnn < width + gap_x){
-             //   Log.d("TAG", "DrawECGWave: "+(float) getY_coordinate((Double) refreshList.get(i))+"    xori + gap_x * i +  x_changed:"+xori + gap_x * i +  x_changed);
+                //   Log.d("TAG", "DrawECGWave: "+(float) getY_coordinate((Double) refreshList.get(i))+"    xori + gap_x * i +  x_changed:"+xori + gap_x * i +  x_changed);
                 path.lineTo(xori + gap_x * i +  x_changed , (float) getY_coordinate((Double) refreshList.get(i)));
             }
         }
@@ -166,11 +166,11 @@ public class Wave  extends View {
     }
 
     public void showLine(double line) {
-      // System.out.print("line:"+line);
+        // System.out.print("line:"+line);
         refreshList.add(line);
         invalidate();
     }
-/**将数值转换为y坐标**/
+    /**将数值转换为y坐标**/
     private double getY_coordinate(Double data){
         x_changed += x_change;
         Double y_int = data;

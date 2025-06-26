@@ -41,12 +41,12 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="@string/main_ECG"
-                    android:textColor="@color/black"
+                    android:textColor="@color/red"
+                    android:textStyle="bold"
                     android:textSize="24sp" />
 
             </LinearLayout>
         </LinearLayout>
-
     </androidx.cardview.widget.CardView>
 
 
@@ -54,7 +54,7 @@
         android:id="@+id/Spo2CardView"
         android:layout_width="250dp"
         android:layout_height="250dp"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="#F7F8FF"
         app:cardCornerRadius="35dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -68,7 +68,7 @@
             android:orientation="horizontal">
             <!--血氧检测-->
             <LinearLayout
-                android:id="@+id/Spo2_Layout"
+                android:id="@+id/recdataid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -76,14 +76,15 @@
                 <ImageView
                     android:layout_width="200dp"
                     android:layout_height="165dp"
-                    app:srcCompat="@drawable/desklogo" />
+                    app:srcCompat="@drawable/linechart" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="其他功能"
-                    android:textColor="@color/black"
+                    android:text="生化指标"
+                    android:textColor="@color/blue"
+                    android:textStyle="bold"
                     android:textSize="24sp" />
 
             </LinearLayout>
@@ -113,7 +114,7 @@
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:layout_centerHorizontal="true"
-            android:layout_marginLeft="30dp"
+            android:layout_marginLeft="10dp"
             android:src="@drawable/aaist" />
 
         <TextView
@@ -121,10 +122,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginLeft="30dp"
+            android:layout_marginLeft="10dp"
             android:text="@string/app_name"
+            android:textStyle="bold"
             android:textColor="@color/black"
-            android:textSize="25sp" />
+            android:textSize="50sp" />
 
     </LinearLayout>
 

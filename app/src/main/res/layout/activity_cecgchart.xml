@@ -25,7 +25,7 @@
             android:layout_marginStart="1dp"
             android:background="@drawable/shape" />
 
-        <!--显示心电的可视化图像-->
+        <!--显示心电的可视化图像,自定义了一个画图的Java类-->
         <LinearLayout
             android:layout_width="550dp"
             android:layout_height="match_parent"
@@ -101,6 +101,9 @@
                         android:textSize="20dp" />
                 </LinearLayout>
 
+
+
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -126,6 +129,19 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/Bitchar"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_gravity="center"
+                    android:textAlignment="center"
+                    android:textColor="@color/black"
+                    android:background="@color/darkred"
+                    android:textSize="10dp"
+                    android:text="接收数据: 暂无数据"/>
 
                 <Button
                     android:id="@+id/EcgChartView_disconnect"
@@ -153,15 +169,15 @@
 
                 <Button
                     android:id="@+id/OfflineView"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginRight="5dp"
                     android:background="@drawable/buttonshape"
                     android:text="离线图片"
-                    android:textSize="15dp"
-                    android:textColor="@color/white"/>
+                    android:textColor="@color/white"
+                    android:textSize="15dp" />
 
             </LinearLayout>
         </LinearLayout>
