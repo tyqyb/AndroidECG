@@ -68,7 +68,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginLeft="15dp"
-            android:text="mMol/L"
+            android:text="μMol/L"
             android:textColor="@color/black"
             android:textSize="25sp" />
     </LinearLayout>
@@ -158,7 +158,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginLeft="15dp"
-            android:text="mMol/L"
+            android:text="μMol/L"
             android:textColor="@color/black"
             android:textSize="25sp" />
     </LinearLayout>
@@ -216,21 +216,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/DrawView2">
 
+        <!--数值参考来源：https://metaso.cn/s/eIVO8Rn-->
         <TextView
-            android:id="@+id/zhu1"
+            android:id="@+id/Index1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="汗糖参考范围：XX ~ XX mM/L"
+            android:text="汗糖参考范围：60 ~ 200 μM/L"
             android:textColor="@color/gray"
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/zhu2"
+            android:id="@+id/Index2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="尿酸参考范围：XX ~ XX mM/L"
+            android:text="尿酸参考范围：24.5 ~ 35.7 μM/L"
             android:textColor="@color/gray"
             android:textSize="15sp" />
 

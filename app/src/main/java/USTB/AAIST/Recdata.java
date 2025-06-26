@@ -24,15 +24,10 @@ import android.Manifest;
 import androidx.appcompat.app.AppCompatActivity;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
-import com.iflytek.cloud.SpeechUtility;
-import com.iflytek.cloud.SpeechConstant;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -42,6 +37,10 @@ import java.util.regex.Pattern;
 import USTB.AAIST.view.DrawLine;
 import USTB.AAIST.view.DrawLine2;
 import android.bluetooth.BluetoothGattCallback;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import com.iflytek.cloud.SpeechUtility;
+import com.iflytek.cloud.SpeechConstant;
 
 public class Recdata extends AppCompatActivity {
     // 蓝牙相关常量
@@ -50,7 +49,6 @@ public class Recdata extends AppCompatActivity {
     private static final String SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
     private static final String CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";//指标1特征
     private static final String CHARACTERISTIC_UUID2 = "0000ffe2-0000-1000-8000-00805f9b34fb"; // 指标2特征
-
     private BluetoothDevice mDevice;
     private static final int BLUETOOTH_CONNECT_REQUEST_CODE = 1001;
     private static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 1001; // 可以是任意唯一整数
@@ -63,31 +61,38 @@ public class Recdata extends AppCompatActivity {
         DISCONNECTING
     }
 
+    //数据解析相关变量
+    private static final int PACKET_LENGTH = 16; // 数据包长度
+    private static final byte START_BYTE1 = 0x0A; // 起始标志1
+    private static final byte START_BYTE2 = (byte) 0xFA; // 起始标志2
+    private static final byte END_BYTE1 = 0x00; // 结束标志1
+    private static final byte END_BYTE2 = 0x0B; // 结束标志2
+
     private MyBluetoothManager myBluetoothManager;
     private ConnectionState mConnectionState = ConnectionState.DISCONNECTED;
     private String mDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
     private BluetoothGattCharacteristic mNotifyCharacteristic;//第一个特征值引用
     private BluetoothGattCharacteristic mNotifyCharacteristic2;//第二个特征值引用
-
     // 绘图视图
     private DrawLine mDrawLine1;
     private DrawLine2 mDrawLine2;
-
     // 存储两个指标的历史值
     private float mPreviousValue1 = 0f;
     private float mPreviousValue2 = 0f;
-
     // 数据队列用于绘图
     private final LinkedList<Float> mDataQueue1 = new LinkedList<>();
     private final LinkedList<Float> mDataQueue2 = new LinkedList<>();
     private static final int MAX_DATA_POINTS = 200; // 最大存储点数
-
     // UI组件
     private TextView mDataDisplay;
     private TextView mValueDisplay;
     private float mPreviousValue = 0f;
     private Handler mHandler = new Handler(Looper.getMainLooper());
+    // 添加时间戳跟踪
+    private long lastTimestamp = 0;
+    private static final long TIMESTAMP_INTERVAL = 1000; // 1秒间隔
+    private long startTime = 0; // 数据接收开始时间
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,18 +105,15 @@ public class Recdata extends AppCompatActivity {
         }
 
         // 初始化语音服务
-        SpeechUtility.createUtility(this, SpeechConstant.APPID + "=5f16ff0d");
+        //SpeechUtility.createUtility(this, SpeechConstant.APPID + "=5f16ff0d");
 
         // 初始化Python环境
         if (!Python.isStarted()) {
             Python.start(new AndroidPlatform(this));
         }
 
-        // 获取蓝牙管理器实例
-        myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());
-
-        //设置外部回调
-        myBluetoothManager.setExternalCallback(mGattCallback);
+        myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());// 获取蓝牙管理器实例
+        myBluetoothManager.setExternalCallback(mGattCallback);//设置外部回调
 
         // 检查设备连接状态
         if (!myBluetoothManager.isDeviceConnected()) {
@@ -149,8 +151,7 @@ public class Recdata extends AppCompatActivity {
 
         initViews();
 
-        // 直接使用现有的蓝牙连接，而不是重新连接
-        mBluetoothGatt = myBluetoothManager.getBluetoothGatt();
+        mBluetoothGatt = myBluetoothManager.getBluetoothGatt();// 直接使用现有的蓝牙连接，而不是重新连接
         if (mBluetoothGatt != null) {
 /*            // 重新设置回调以接收数据
             //mBluetoothGatt.setCallback(mGattCallback);
@@ -172,25 +173,21 @@ public class Recdata extends AppCompatActivity {
         mDrawLine2 = findViewById(R.id.chartView2);
 
         // 设置初始范围和自动调整
-        mDrawLine1.setYRange(0, 100, true); // 假设初始范围0-100
-       // mDrawLine2.setYRange(0, 500, true);
+        mDrawLine1.setYRange(0, 100, true); // 指标1初始范围
+        mDrawLine2.setYRange(0, 50, true);// 指标2初始范围
 
         // 启用自动范围调整
         mDrawLine1.setAutoAdjustRange(true);
         mDrawLine1.setAutoAdjustEnabled(true);
-        //mDrawLine2.setAutoAdjustRange(true);
+        mDrawLine2.setAutoAdjustRange(true); //指标2的y轴自动调整
+        mDrawLine2.setAutoAdjustEnabled(true);
 
         // 初始化绘图参数
         mDrawLine1.setMaxPoints(MAX_DATA_POINTS);
         mDrawLine2.setMaxPoints(MAX_DATA_POINTS);
-        //mDrawLine1.setLabel("汗糖值 (mMol/L)");
-        //mDrawLine2.setLabel("尿酸值 (mMol/L)");
     }
 
-
-
-
-
+    //异步断开蓝牙连接
     private void safeDisconnectGatt() {
         // 先检查权限
         if (!checkBluetoothPermission()) {
@@ -229,6 +226,7 @@ public class Recdata extends AppCompatActivity {
         }
     }
 
+    //检查蓝牙权限
     private boolean checkBluetoothPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             return checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) ==
@@ -237,6 +235,7 @@ public class Recdata extends AppCompatActivity {
         return true;
     }
 
+    //请求蓝牙权限
     private void requestBluetoothPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             try {
@@ -251,16 +250,15 @@ public class Recdata extends AppCompatActivity {
         }
     }
 
+    //初始化视图
     private void initViews() {
         try {
             mDataDisplay = findViewById(R.id.BitChar_NiaoSuan);
             mValueDisplay = findViewById(R.id.BitChar_HanTang);
-
             // 添加空检查
             if (mDataDisplay == null || mValueDisplay == null) {
                 throw new IllegalStateException("未能找到必要的TextView组件");
             }
-
             mDataDisplay.setMovementMethod(new ScrollingMovementMethod());
         } catch (Exception e) {
             Log.e(TAG, "初始化视图失败", e);
@@ -269,6 +267,7 @@ public class Recdata extends AppCompatActivity {
         }
     }
 
+    //处理设备地址
     private void handleIntent(Intent intent) {
         mDeviceAddress = intent.getStringExtra("DEVICE_ADDRESS");
         if (TextUtils.isEmpty(mDeviceAddress)) {
@@ -292,18 +291,11 @@ public class Recdata extends AppCompatActivity {
         Log.d(TAG, "连接设备地址: " + mDeviceAddress);
     }
 
+    //错误检查
     private void showErrorAndFinish(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         Log.e(TAG, message);
         finish();
-    }
-
-    private void checkConnectionStatus() {
-        if (mConnectionState == ConnectionState.CONNECTING) {
-            Log.w(TAG, "连接超时，强制断开");
-            disconnectGatt();
-            showErrorAndFinish("连接超时");
-        }
     }
 
     private void handlePermissionError() {
@@ -315,7 +307,6 @@ public class Recdata extends AppCompatActivity {
     }
 
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
-
         //增强回调处理：
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt,
@@ -330,8 +321,7 @@ public class Recdata extends AppCompatActivity {
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            //super.onConnectionStateChange(gatt, status, newState);
-
+            super.onConnectionStateChange(gatt, status, newState);
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 Log.e(TAG, "连接错误，状态码: " + status);
                 handleConnectionFailure();
@@ -358,13 +348,11 @@ public class Recdata extends AppCompatActivity {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
-
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 Log.e(TAG, "服务发现失败: " + status);
                 handleConnectionFailure();
                 return;
             }
-
             Log.d(TAG, "服务发现成功");
             setupNotification(gatt);
         }
@@ -407,7 +395,6 @@ public class Recdata extends AppCompatActivity {
 
     @SuppressLint("MissingPermission")//添加此代码便可不需要重复的权限检查
     private void setupNotification(BluetoothGatt gatt) {
-
         // 打印所有服务和特征值用于调试
         for (BluetoothGattService service : gatt.getServices()) {
             Log.d(TAG, "发现服务: " + service.getUuid());
@@ -422,7 +409,6 @@ public class Recdata extends AppCompatActivity {
             Log.e(TAG, "未找到服务: " + SERVICE_UUID);
             return;
         }
-
         // 设置第一个特征值的通知，指标1
         mNotifyCharacteristic = service.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID));
         if (mNotifyCharacteristic != null) {
@@ -460,13 +446,15 @@ public class Recdata extends AppCompatActivity {
         }
     }
 
-    /*以下是数据处理相关代码*/
+    /**
+     * 以下是数据处理相关代码，在这里更改不同的解析字节
+     * **/
     private void processReceivedData(byte[] data, int dataType) {
         if (data == null || data.length == 0) {
             Log.w(TAG, "收到空数据");
             return;
         }
-
+/*
         // 调试输出
         Log.d(TAG, "收到数据 - 类型" + dataType + " 长度: " + data.length + " 内容: " + Arrays.toString(data));
 
@@ -476,56 +464,52 @@ public class Recdata extends AppCompatActivity {
             hexBuilder.append(String.format("%02X", b & 0xFF));
         }
         String hexString = hexBuilder.toString().trim();
-        Log.d(TAG, "HEX原始数据: " + hexString);
+        Log.d(TAG, "HEX原始数据: " + hexString);*/
 
-        // 尝试解析为整数
-        try {
-            // 根据您的设备协议，这里可能需要调整解析逻辑
-            // 示例：假设数据包中第6-9字节是有效值 (小端序)
-            if (data.length >= 10) {
-                int value = ((data[5] & 0xFF) << 24) |
-                        ((data[6] & 0xFF) << 16) |
-                        ((data[7] & 0xFF) << 8)  |
-                        (data[8] & 0xFF);
-
-                Log.d(TAG, "解析成功 - 类型" + dataType + " HEX:" + hexString + " 值:" + value);
-                updateUIWithValue(value, dataType);
-            } else {
-                Log.w(TAG, "数据长度不足，无法解析");
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "解析错误: " + hexString, e);
+        // 检查起始标志
+        if (data[0] != START_BYTE1 || data[1] != START_BYTE2) {
+            Log.w(TAG, "起始标志错误");
+            return;
         }
-    }
 
-    // 解析字节数组为浮点数列表
-    private List<Float> parseFloatArray(byte[] data) {
-        List<Float> values = new ArrayList<>();
-        ByteBuffer buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
-        try {
-            while (buffer.remaining() >= 4) {
-                values.add(buffer.getFloat());
-            }
-            Log.d(TAG, "解析为浮点数组: " + values);
-        } catch (Exception e) {
-            Log.e(TAG, "浮点数组解析失败", e);
+        // 检查结束标志
+        if (data[14] != END_BYTE1 || data[15] != END_BYTE2) {
+            Log.w(TAG, "结束标志错误");
+            return;
         }
-        return values;
+
+        // 解析心电滤波结果（字节5和6，低字节在前）
+        int Index1Value = ((data[5] & 0xFF) | ((data[6] & 0xFF) << 8));
+
+        // 添加合理范围检查（0-3000）
+        if (Index1Value >= 0 && Index1Value <= 3000) {
+            Log.d(TAG, "解析成功 - 类型" + dataType + "值:" + Index1Value);
+            updateUIWithValue(Index1Value, dataType);
+        } else {
+            Log.w(TAG, "值超出范围: " + Index1Value);
+        }
+
     }
 
     // 统一更新UI
     private void updateUIWithValue(float value, int dataType) {
         runOnUiThread(() -> {
+            // 如果是第一次收到数据，记录起始时间
+            if (startTime == 0) {
+                startTime = System.currentTimeMillis();
+            }
+            float seconds = (System.currentTimeMillis() - startTime) / 1000.0f;// 使用系统时间，计算相对时间（秒）
+            // 始终更新图表数据（但图表会自己处理标签）
             if (dataType == 1) {
                 mValueDisplay.setText(String.format(Locale.getDefault(), "%d", (int)value));
                 //更新数据队列
                 updateDataQueue(mDataQueue1, value);
-                mDrawLine1.addDataPoint(value);
+                mDrawLine1.addDataPoint(value, seconds);
             } else if (dataType == 2) {
-                //mDataDisplay.setText(String.format(Locale.getDefault(), "%.2f", value));
+                mDataDisplay.setText(String.format(Locale.getDefault(), "%.2f", value));
                 // 更新数据队列
-                //updateDataQueue(mDataQueue2, value);
-                //mDrawLine2.addDataPoint(value);
+                updateDataQueue(mDataQueue2, value);
+                mDrawLine2.addDataPoint(value, seconds);
             }
         });
     }
@@ -594,7 +578,6 @@ public class Recdata extends AppCompatActivity {
     @SuppressLint("MissingPermission")
     private void disconnectGatt() {
         if (mBluetoothGatt == null) return;
-
         mConnectionState = ConnectionState.DISCONNECTING;
         try {
             mBluetoothGatt.disconnect();
@@ -625,5 +608,28 @@ public class Recdata extends AppCompatActivity {
         mHandler.removeCallbacksAndMessages(null);// 先停止数据接收
         safeDisconnectGatt();// 再断开连接
         super.onDestroy();
+    }
+
+    private void checkConnectionStatus() {
+        if (mConnectionState == ConnectionState.CONNECTING) {
+            Log.w(TAG, "连接超时，强制断开");
+            disconnectGatt();
+            showErrorAndFinish("连接超时");
+        }
+    }
+
+    // 解析字节数组为浮点数列表
+    private List<Float> parseFloatArray(byte[] data) {
+        List<Float> values = new ArrayList<>();
+        ByteBuffer buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
+        try {
+            while (buffer.remaining() >= 4) {
+                values.add(buffer.getFloat());
+            }
+            Log.d(TAG, "解析为浮点数组: " + values);
+        } catch (Exception e) {
+            Log.e(TAG, "浮点数组解析失败", e);
+        }
+        return values;
     }
 }
