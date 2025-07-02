@@ -78,7 +78,10 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0f3eed40-47c2-49b5-bcc2-4e73dcc94ec2" name="变更" comment="" />
+    <list default="true" id="0f3eed40-47c2-49b5-bcc2-4e73dcc94ec2" name="变更" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -144,6 +147,9 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://D:/AndroidStudio/AndroidSDK/sources/android-34/android/app/AlertDialog.java" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/app/src/main/res/values/themes.xml" root0="FORCE_HIGHLIGHTING" />
@@ -205,7 +211,7 @@
     "dart.analysis.tool.window.visible": "false",
     "kotlin-language-version-configured": "true",
     "last_directory_selection": "C:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/res/drawable",
-    "last_opened_file_path": "C:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/res/drawable",
+    "last_opened_file_path": "E:/00-UstbAAIST/04-Issue/09-SoftWare/AndroidECG",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
