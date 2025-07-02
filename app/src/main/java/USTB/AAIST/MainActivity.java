@@ -11,15 +11,11 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-
 public class MainActivity extends AppCompatActivity {
     private LinearLayout cECG_Layout;
     private LinearLayout Recdata_Layout;
-    // 使用单例管理蓝牙在页面跳转时的状态传递
-    private MyBluetoothManager myBluetoothManager;
-    //private static boolean isBluetoothConnected = false;
-    //private static BLE bleInstance;
-    // 页面类型常量，在MainActivity.java中
+    private MyBluetoothManager myBluetoothManager;// 使用单例管理蓝牙在页面跳转时的状态传递
+    // 页面类型常量
     public static final int PAGE_ECG = 1;
     public static final int PAGE_RECDATA = 2;
 
@@ -27,18 +23,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());
-
         // 隐藏标题栏
         if (getSupportActionBar()!=null){
             getSupportActionBar().hide();
         }
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         initUI();
-        // 处理从BLE页面返回的意图
-        handleIntent(getIntent());
+        handleIntent(getIntent());// 处理从BLE页面返回的意图
     }
 
     @Override
@@ -47,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         handleIntent(intent);
     }
 
+    //用户意图处理
     private void handleIntent(Intent intent) {
         if (intent != null) {
             // 检查是否有目标页面需要跳转
@@ -60,17 +53,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** 初始化控件并设置点击事件 */
+    //初始化控件并设置点击事件
     private void initUI() {
         cECG_Layout = findViewById(R.id.cECG_Layout);
         Recdata_Layout = findViewById(R.id.recdataid);
-        // 心电点击事件
-        cECG_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_ECG));
-        // 数据接收点击事件
-        Recdata_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_RECDATA));
+
+        cECG_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_ECG));// 心电点击事件
+        Recdata_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_RECDATA));// 数据接收点击事件
     }
 
-    /** 导航到目标页面 */
+    //导航到目标页面
     private void navigateToTargetPage(int pageType) {
         if (myBluetoothManager.isConnected()) {
             Intent intent = new Intent();
@@ -92,21 +84,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-/*    @Override
-    protected void onResume() {
-        super.onResume();
-        // 检查是否有从BLE页面返回的跳转请求
-        if (getIntent() != null && getIntent().hasExtra("should_navigate")) {
-            int targetPage = getIntent().getIntExtra("target_page", -1);
-            if (targetPage != -1) {
-                navigateToTargetPage(targetPage);
-            }
-        }
-    }
-    MyBluetoothManager myManager = MyBluetoothManager.getInstance(getApplicationContext());
-
-    */
-
+    //菜单事件处理
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.ble) {

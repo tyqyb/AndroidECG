@@ -13,10 +13,8 @@ import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 import android.bluetooth.BluetoothGattCallback;
-
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import java.util.UUID;
 
 public class MyBluetoothManager {
@@ -33,7 +31,6 @@ public class MyBluetoothManager {
     private Context context; // 添加Context引用
     private BluetoothDevice bluetoothDevice;// 新增存储BluetoothDevice对象
     private BluetoothGattCallback mGattCallback;
-
     private BluetoothGattCallback mExternalCallback;
     // 添加公共方法检查连接状态
     public boolean isConnected() {
@@ -48,21 +45,18 @@ public class MyBluetoothManager {
         this.mExternalCallback = callback;
     }
     // 处理特征值变化事件
-    public void onCharacteristicChanged(BluetoothGatt gatt,
-                                        BluetoothGattCharacteristic characteristic) {
+    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         if (mExternalCallback != null) {
             mExternalCallback.onCharacteristicChanged(gatt, characteristic);
         }
     }
 
     // 转发特征值变化事件
-    public void forwardCharacteristicChanged(BluetoothGatt gatt,
-                                             BluetoothGattCharacteristic characteristic) {
+    public void forwardCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         if (mExternalCallback != null) {
             mExternalCallback.onCharacteristicChanged(gatt, characteristic);
         }
     }
-
 
     public void setGattCallback(BluetoothGattCallback callback) {
         this.mGattCallback = callback;
@@ -102,12 +96,9 @@ public class MyBluetoothManager {
     public BluetoothGattCharacteristic getCharacteristic() {
         if (bluetoothGatt == null) return null;
 
-        BluetoothGattService service = bluetoothGatt.getService(
-                UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"));
-
+        BluetoothGattService service = bluetoothGatt.getService(UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"));
         if (service != null) {
-            return service.getCharacteristic(
-                    UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
+            return service.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
         }
         return null;
     }
@@ -204,7 +195,6 @@ public class MyBluetoothManager {
     public boolean isDeviceConnected() {
         return isConnected && deviceAddress != null && !deviceAddress.isEmpty();
     }
-
 
     // 获取BLE实例
     public BLE getBleInstance() {

@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
@@ -14,6 +13,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
@@ -26,10 +27,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
-
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,12 +35,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import USTB.AAIST.adapter.DevicesAdapterList;
 import USTB.AAIST.devicesdata.Devices;
-
 import android.bluetooth.BluetoothManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 public class BLE extends AppCompatActivity implements View.OnClickListener {
+    // 蓝牙相关常量
+    private static final UUID CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标1服务特征值匹配描述符
+    private static final String SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";//特征值1的服务UUID
+    private static final String CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";//指标1特征值UUID
+    private static final UUID CCC_DESCRIPTOR_UUID2 = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标2服务特征值匹配描述符，同1
+    private static final String SERVICE_UUID2 = "0000fff0-0000-1000-8000-00805f9b34fb";//特征值2的服务UUID
+    private static final String CHARACTERISTIC_UUID2 = "0000fff1-0000-1000-8000-00805f9b34fb"; // 指标2特征值UUID
 
     private static final int PERMISSION_REQUEST_BLUETOOTH_CONNECT = 102;
     private static final String TAG = "BLE_DEBUG";
@@ -62,9 +69,7 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     private ListView listView;
     private Button btnRefresh;
     private String mConnectedDeviceAddress;
-
-    // 添加 MyBluetoothManager 引用
-    private MyBluetoothManager myBluetoothManager;
+    private MyBluetoothManager myBluetoothManager;// 添加 MyBluetoothManager 引用
 
     @RequiresApi(api = Build.VERSION_CODES.S)
     private final String[] REQUIRED_PERMISSIONS = {
@@ -111,12 +116,10 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     @Override
     protected void onResume() {
         super.onResume();
-
         // 确保单例已初始化
         if (myBluetoothManager == null) {
             myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());
         }
-
         // 更新UI状态
         if (myBluetoothManager != null && myBluetoothManager.isConnected()) {
             updateConnectionState("已连接");
@@ -131,28 +134,18 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         if (bluetoothManager != null) {
             mBtAdapter = bluetoothManager.getAdapter();
         }
-
-        // 设置开关初始状态为关闭（覆盖蓝牙适配器的实际状态）
-        btSwitch.setChecked(false);
-
+        btSwitch.setChecked(false);// 设置开关初始状态为关闭（覆盖蓝牙适配器的实际状态）
         // 检查设备是否支持BLE
         if (mBtAdapter == null) {
             Toast.makeText(this, "设备不支持蓝牙", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
-
         // 初始化蓝牙扫描器
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mBluetoothLeScanner = mBtAdapter.getBluetoothLeScanner();
         }
-
-        // 恢复蓝牙开关状态
-        btSwitch.setChecked(mBtAdapter.isEnabled());
-    }
-
-    public boolean isBluetoothConnected() {
-        return mBtGatt != null && mConnectedDeviceAddress != null;
+        btSwitch.setChecked(mBtAdapter.isEnabled());// 恢复蓝牙开关状态
     }
 
     private void setupListeners() {
@@ -219,7 +212,6 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     @SuppressLint("MissingPermission")
     private void enableBluetooth() {
         if (mBtAdapter == null) return;
-
         // 检查并请求 BLUETOOTH_CONNECT 权限（仅 Android 12+ 需要）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
@@ -296,7 +288,6 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     @SuppressLint("MissingPermission")
     private void stopScan() {
         if (!mScanning) return;
-
         mScanning = false;
         if (mBluetoothLeScanner != null) {
             mBluetoothLeScanner.stopScan(mScanCallback);
@@ -324,20 +315,17 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     private void processDevice(BluetoothDevice device) {
         runOnUiThread(() -> {
             if (device == null) return;
-
             // 检查蓝牙权限
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
                     != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-
             String name;
             try {
                 name = device.getName();
                 if (name == null) return;
             } catch (SecurityException e) {
-                // 处理权限异常
-                Log.e("Bluetooth", "No BLUETOOTH_CONNECT permission", e);
+                Log.e("Bluetooth", "No BLUETOOTH_CONNECT permission", e);// 处理权限异常
                 return;
             }
 
@@ -384,7 +372,7 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         return mBtGatt;
     }
 
-    // GATT回调处理
+    // GATT回调处理，需要处理两个服务对应的特征值
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -453,7 +441,7 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
                 runOnUiThread(() -> {
                     Toast.makeText(BLE.this, "蓝牙连接成功", Toast.LENGTH_SHORT).show();
                     updateConnectionState("已连接");
-
+                    enableNotificationsForCharacteristics();// 启用两个特征值的通知
                     // 跳转到选择页面
                     Intent intent = new Intent(BLE.this, MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -461,15 +449,44 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
                 });
             }
         }
+
+        //启用两个特征值的通知
+        @SuppressLint("MissingPermission")
+        private void enableNotificationsForCharacteristics() {
+            if (mBtGatt == null) return;
+
+            BluetoothGattService service1 = mBtGatt.getService(UUID.fromString(SERVICE_UUID));//获取服务1
+            if (service1 != null) {
+                BluetoothGattCharacteristic char1 = service1.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID));//获取特征1
+                if (char1 != null) {
+                    mBtGatt.setCharacteristicNotification(char1, true);// 启用通知1
+                    BluetoothGattDescriptor descriptor = char1.getDescriptor(CCC_DESCRIPTOR_UUID);//获取并写入CCCD描述符
+                    if (descriptor != null) {
+                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                        mBtGatt.writeDescriptor(descriptor);
+                    }
+                }
+            }
+
+            BluetoothGattService service2 = mBtGatt.getService(UUID.fromString(SERVICE_UUID2));//获取服务2
+            if (service2 != null) {
+                BluetoothGattCharacteristic char2 = service2.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID2));//获取特征2
+                if (char2 != null) {
+                    mBtGatt.setCharacteristicNotification(char2, true);// 启用通知2
+                    BluetoothGattDescriptor descriptor = char2.getDescriptor(CCC_DESCRIPTOR_UUID2);//获取并写入CCCD描述符
+                    if (descriptor != null) {
+                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                        mBtGatt.writeDescriptor(descriptor);
+                    }
+                }
+            }
+        }
     };
 
     private void closeGatt() {
         if (mBtGatt != null) {
             // 检查 BLUETOOTH_CONNECT 权限
-            if (ContextCompat.checkSelfPermission(
-                    getApplicationContext(),
-                    Manifest.permission.BLUETOOTH_CONNECT
-            ) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
                 try {
                     mBtGatt.disconnect();
                     mBtGatt.close();
@@ -482,11 +499,11 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
             mBtGatt = null;
             mConnectedDeviceAddress = null;
         }
-        // 关闭 GATT 后，复位 Switch 按钮状态
-        btSwitch.setChecked(false);
+
+        btSwitch.setChecked(false);// 关闭 GATT 后，复位 Switch 按钮状态
         myBluetoothManager.disconnect();
     }
-
+    //清除搜索设备列表
     private void clearDeviceList() {
         mDevices.clear();
         mDeviceMap.clear();
@@ -513,7 +530,6 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     protected void onDestroy() {
         super.onDestroy();
         stopScan();
-        //disconnectGatt();
         closeGatt();
         btSwitch.setChecked(false);// 确保退出时 Switch 复位
     }
@@ -524,13 +540,12 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            // 原有权限处理逻辑...
+            Toast.makeText(this, "已获取蓝牙权限", Toast.LENGTH_SHORT).show();
         }
         // 处理 BLUETOOTH_CONNECT 权限请求
         else if (requestCode == PERMISSION_REQUEST_BLUETOOTH_CONNECT) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 权限已授予，重试启用蓝牙
-                enableBluetooth();
+                enableBluetooth();// 权限已授予，重试启用蓝牙
             } else {
                 // 权限被拒绝
                 btSwitch.setChecked(false);
@@ -540,8 +555,7 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         // 处理 MyBluetoothManager 可能需要的权限请求
         if (requestCode == MyBluetoothManager.BLUETOOTH_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 权限已授予，执行断开操作
-                myBluetoothManager.disconnect();
+                myBluetoothManager.disconnect();// 权限已授予，执行断开操作
             }
         }
     }
@@ -573,13 +587,19 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     public void onClick(View v) {
         // 检查是否已连接到蓝牙设备
         if (mBtGatt != null && mConnectedDeviceAddress != null) {
-/*            // 已连接，跳转到 MainActivity，这一步在BluetoothGattCallback mGattCallback = new BluetoothGattCallback() 中已经实现了，所以这个点击事件可有可无
-            Intent intent = new Intent(this, MainActivity.class);
+            // 已连接，跳转到 MainActivity，这一步在BluetoothGattCallback mGattCallback = new BluetoothGattCallback() 中已经实现了，所以这个点击事件可有可无
+            /*Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish(); // 可选：关闭当前 Activity*/
         } else {
-            // 未连接，保持原有的点击事件处理
-            Toast.makeText(this, "请先连接蓝牙设备", Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(this, "请先连接蓝牙设备", Toast.LENGTH_SHORT).show();// 未连接，保持原有的点击事件处理
         }
     }
+
+    public boolean isBluetoothConnected() {
+        return mBtGatt != null && mConnectedDeviceAddress != null;
+    }
+
+
 }
