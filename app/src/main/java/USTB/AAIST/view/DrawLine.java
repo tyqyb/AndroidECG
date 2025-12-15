@@ -6,6 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -27,7 +29,7 @@ public class DrawLine extends View {
     private final Queue<DataPoint> dataQueue = new LinkedList<>();
     private final Queue<String> labelQueue = new LinkedList<>();
     private int MAX_DATA_POINTS = 50; // 最大显示点数
-    private float maxValue = 100f; // 初始最大值
+    private float maxValue = 1f; // 初始最大值
     private float minValue = 0f;   // 初始最小值
     private String dataLabel = "指标1"; // 数据标签
     //添加队列范围跟踪变量
@@ -36,14 +38,26 @@ public class DrawLine extends View {
     //添加时间管理变量
     private float lastLabelSeconds = -1; // 上次显示标签的时间（秒）
     private static final float LABEL_INTERVAL = 1.0f; // 1秒间隔
-    //画笔相关变量
-    private Paint axisPaint, gridPaint, dataPaint, pointPaint, textPaint, fillPaint;
-    private Path dataPath;
-    private Path fillPath;
-    private RectF chartRect;
+    //画笔相关变量，protected便于DrawLine2访问
+    protected Paint axisPaint, gridPaint, dataPaint, pointPaint, textPaint, fillPaint;
+    protected Path dataPath;
+    protected Path fillPath;
+    protected RectF chartRect;
     //数据统计相关变量
     private int dataCount = 0;
     private long startTime = 0;
+    private ScaleGestureDetector scaleDetector;
+    private boolean isScaling = false;
+    private float touchStartX, touchStartY;
+    private float minTouchDistance = 50f; // 最小触摸距离
+    private float scaleFactor = 1.0f;
+    private float baseRange = 100f; // 基础范围
+    // 添加新的变量用于控制刻度显示
+    private int majorGridLines = 5;  // 主网格线数量
+    private int minorGridLines = 4;  // 每个主网格线之间的小网格线数量
+    private boolean showMinorGrid = true;  // 是否显示小网格线
+
+
     private long lastUpdateTime = 0;
     private final int UPDATE_THRESHOLD = 100; // 100ms更新间隔
 
@@ -71,7 +85,7 @@ public class DrawLine extends View {
         this.autoAdjustRange = enabled;
     }
 
-    private void init() {
+    protected void init() {
 
         // 坐标轴画笔
         axisPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -110,6 +124,8 @@ public class DrawLine extends View {
         dataPath = new Path();
         fillPath = new Path();
         chartRect = new RectF();
+
+        scaleDetector = new ScaleGestureDetector(getContext(), new ScaleListener());// 初始化手势检测器
     }
 
     //添加从蓝牙接收到的数据点  @param value 数据值
@@ -118,15 +134,18 @@ public class DrawLine extends View {
 
         // 只在时间间隔满足时生成标签
         if (lastLabelSeconds < 0 || currentSeconds - lastLabelSeconds >= LABEL_INTERVAL) {
-            // 格式化为整数秒（如 1s, 2s）
             label = formatTimeLabel(currentSeconds);
             lastLabelSeconds = currentSeconds;
         }
 
-        // 创建数据点对象（包含值、时间和标签）
+        // 创建数据点对象
         DataPoint point = new DataPoint(value, currentSeconds, label);
         dataQueue.offer(point);
         dataCount++;
+
+        // 更新队列极值
+        if (value > queueMaxValue) queueMaxValue = value;
+        if (value < queueMinValue) queueMinValue = value;
 
         // 维护队列大小
         if (dataQueue.size() > MAX_DATA_POINTS) {
@@ -137,12 +156,12 @@ public class DrawLine extends View {
             }
         }
 
-        // 更新队列极值
-        if (value > queueMaxValue) queueMaxValue = value;
-        if (value < queueMinValue) queueMinValue = value;
+        // 更新数据范围
+        updateDataRange(value);
 
-        updateDataRange(value);// 更新数据范围
-        postInvalidate();// 重绘视图
+        // 强制重绘
+        invalidate();
+        postInvalidate();
     }
 
     // 重新计算整个队列的范围
@@ -158,7 +177,7 @@ public class DrawLine extends View {
     }
 
     // DataPoint内部类
-    private static class DataPoint {
+    protected static class DataPoint {
         float value;
         float time;
         String label;
@@ -187,17 +206,42 @@ public class DrawLine extends View {
             return String.format(Locale.getDefault(), "%dh%02dm%02ds", hours, minutes, remainingSeconds);// 1小时以上：显示小时、分钟和秒
         }
     }
-
+    //更智能地调整范围
     private void updateDataRange(float value) {
         if (!autoAdjustRange || dataQueue.isEmpty()) return;
 
-        // 处理所有点值相同的情况
+        // 第一次数据点进入时，设置基于该值的初始范围
+        if (dataQueue.size() == 1) {
+            // 如果第一个值为0，设置默认范围
+            if (value == 0) {
+                minValue = -10f;
+                maxValue = 10f;
+            } else {
+                // 设置±120%的范围
+                float margin = Math.abs(value) * 1.2f;
+                minValue = value - margin;
+                maxValue = value + margin;
+
+                // 确保最小范围
+                if (maxValue - minValue < 10) {
+                    float center = (minValue + maxValue) / 2;
+                    minValue = center - 5;
+                    maxValue = center + 5;
+                }
+            }
+            return;
+        }
+
+        // 重新计算队列中的极值
+        recalculateQueueRange();
+
+        // 如果队列中只有一个数据点，或者所有点值相同
         if (queueMaxValue == queueMinValue) {
             if (queueMaxValue == 0) {
-                minValue = -1;
-                maxValue = 1;
+                minValue = -10;
+                maxValue = 10;
             } else {
-                float delta = Math.abs(queueMaxValue) * 0.2f; // 20% of the value
+                float delta = Math.abs(queueMaxValue) * 1.2f; // 使用120%范围
                 minValue = queueMinValue - delta;
                 maxValue = queueMaxValue + delta;
             }
@@ -207,27 +251,29 @@ public class DrawLine extends View {
         // 计算当前数据范围
         float currentRange = queueMaxValue - queueMinValue;
 
-        // 添加15%的缓冲区域
-        float margin = currentRange * 0.15f;
+        // 添加120%的边距
+        float margin = currentRange * 1.2f;
         float newMin = queueMinValue - margin;
         float newMax = queueMaxValue + margin;
 
-        // 确保最小值不为负数（如果数据都是非负）
+        // 确保最小值合理
         if (newMin < 0 && queueMinValue >= 0) {
             newMin = 0;
         }
 
-        // 应用平滑过渡（避免范围跳动）
-        float transitionFactor = 0.3f; // 30%的过渡
-        minValue = minValue + (newMin - minValue) * transitionFactor;
-        maxValue = maxValue + (newMax - maxValue) * transitionFactor;
+        // 平滑过渡（只在新范围变化较大时更新）
+        float rangeChange = Math.abs(newMax - maxValue) + Math.abs(newMin - minValue);
+        if (rangeChange > currentRange * 0.3f) { // 变化超过30%才更新
+            float transitionFactor = 0.3f; // 30%的过渡
+            minValue = minValue + (newMin - minValue) * transitionFactor;
+            maxValue = maxValue + (newMax - maxValue) * transitionFactor;
+        }
 
         // 确保有效范围
-        float minRange = Math.max(currentRange * 0.5f, 10f); // 最小范围为10或当前范围的50%
-        if (maxValue - minValue < minRange) {
+        if (maxValue - minValue < 1.0f) {
             float center = (minValue + maxValue) / 2;
-            minValue = center - minRange / 2;
-            maxValue = center + minRange / 2;
+            minValue = center - 0.5f;
+            maxValue = center + 0.5f;
         }
     }
 
@@ -289,33 +335,108 @@ public class DrawLine extends View {
 
     private void drawGrid(Canvas canvas) {
         // 绘制网格线
-        int gridLines = 5;
-        float gridSpacing = chartRect.height() / gridLines;
+        int totalMajorLines = majorGridLines;
+        float majorGridSpacing = chartRect.height() / totalMajorLines;
 
-        // 修改Y轴标签格式 - 使用整数格式
-        for (int i = 0; i <= gridLines; i++) {
-            float y = chartRect.bottom - i * gridSpacing;
-            float value = minValue + (maxValue - minValue) * i / gridLines;
+        // 使用浮点数列表存储已显示的标签值，避免重复
+        List<Float> drawnYValues = new ArrayList<>();
+        float lastDrawnY = -1000; // 记录上次绘制的Y轴位置
+        float labelSpacingThreshold = 40f; // Y轴标签最小间距(像素)
 
-            // 根据不同的数据范围设置y的精度
-            String label;
-            float range = maxValue - minValue;
-            if (range > 1000) {
-                label = String.format(Locale.getDefault(), "%.0f", value);
-            } else if (range > 100) {
-                label = String.format(Locale.getDefault(), "%.0f", value);//原%.1f
-            } else {
-                label = String.format(Locale.getDefault(), "%.0f", value);//原%.2f
+        // 绘制小网格线（浅灰色细线）
+        if (showMinorGrid && totalMajorLines > 0) {
+            Paint minorGridPaint = new Paint(gridPaint);
+            minorGridPaint.setColor(Color.parseColor("#E0E0E0"));
+            minorGridPaint.setStrokeWidth(0.5f);
+
+            for (int i = 0; i <= totalMajorLines * (minorGridLines + 1); i++) {
+                float y = chartRect.bottom - i * (majorGridSpacing / (minorGridLines + 1));
+                if (y >= chartRect.top && y <= chartRect.bottom) {
+                    // 跳过主网格线位置（会单独绘制）
+                    if (i % (minorGridLines + 1) != 0) {
+                        canvas.drawLine(chartRect.left, y, chartRect.right, y, minorGridPaint);
+                    }
+                }
             }
-            // 使用辅助文本画笔绘制标签
-            Paint labelPaint = new Paint(textPaint);
-            labelPaint.setTextSize(28f);
-            labelPaint.setTextAlign(Paint.Align.RIGHT);
-            canvas.drawText(label, chartRect.left - 10, y + 10, labelPaint);
         }
 
-        canvas.drawLine(chartRect.left, chartRect.bottom, chartRect.right, chartRect.bottom, axisPaint);// 绘制X轴
-        canvas.drawLine(chartRect.left, chartRect.top, chartRect.left, chartRect.bottom, axisPaint);// 绘制Y轴
+        // 绘制主网格线和Y轴标签
+        for (int i = 0; i <= totalMajorLines; i++) {
+            float y = chartRect.bottom - i * majorGridSpacing;
+
+            // 绘制主网格线
+            if (i > 0 && i < totalMajorLines) { // 不绘制顶部和底部的网格线
+                canvas.drawLine(chartRect.left, y, chartRect.right, y, gridPaint);
+            }
+
+            // 计算对应的数值
+            float value = minValue + (maxValue - minValue) * i / totalMajorLines;
+
+            // 格式化标签，根据范围决定显示小数位数
+            String label;
+            float range = maxValue - minValue;
+
+            if (range < 0.1) {
+                // 非常小的范围，显示4位小数
+                label = String.format(Locale.getDefault(), "%.4f", value);
+            } else if (range < 1) {
+                // 小范围，显示3位小数
+                label = String.format(Locale.getDefault(), "%.3f", value);
+            } else if (range < 10) {
+                // 中等范围，显示2位小数
+                label = String.format(Locale.getDefault(), "%.2f", value);
+            } else if (range < 100) {
+                // 较大范围，显示1位小数
+                label = String.format(Locale.getDefault(), "%.1f", value);
+            } else {
+                // 大范围，显示整数
+                label = String.format(Locale.getDefault(), "%.0f", value);
+            }
+
+            // 检查标签是否与上一个太近
+            boolean shouldDrawLabel = true;
+            for (float drawnValue : drawnYValues) {
+                if (Math.abs(y - drawnValue) < labelSpacingThreshold) {
+                    shouldDrawLabel = false;
+                    break;
+                }
+            }
+
+            // 检查数值是否与已显示的标签值太接近（避免数值上的重复）
+            boolean valueTooClose = false;
+            for (float drawnYVal : drawnYValues) {
+                if (Math.abs(y - drawnYVal) < labelSpacingThreshold) {
+                    valueTooClose = true;
+                    break;
+                }
+            }
+
+            // 绘制Y轴标签
+            if (shouldDrawLabel && !valueTooClose) {
+                // 使用辅助文本画笔绘制标签
+                Paint labelPaint = new Paint(textPaint);
+                labelPaint.setTextSize(28f);
+                labelPaint.setTextAlign(Paint.Align.RIGHT);
+                labelPaint.setColor(Color.parseColor("#455A64")); // 深灰色
+
+                // 在Y轴左侧绘制数值标签
+                canvas.drawText(label, chartRect.left - 15, y + 10, labelPaint);
+
+                // 记录已绘制的标签位置
+                drawnYValues.add(y);
+                lastDrawnY = y;
+            }
+
+            // 在主刻度位置绘制更粗的刻度标记
+            Paint tickPaint = new Paint(axisPaint);
+            tickPaint.setStrokeWidth(2f);
+            canvas.drawLine(chartRect.left - 10, y, chartRect.left, y, tickPaint);
+        }
+
+        // 绘制X轴
+        canvas.drawLine(chartRect.left, chartRect.bottom, chartRect.right, chartRect.bottom, axisPaint);
+        // 绘制Y轴
+        canvas.drawLine(chartRect.left, chartRect.top, chartRect.left, chartRect.bottom, axisPaint);
 
         // 绘制X轴标签（只显示部分标签）
         if (!dataQueue.isEmpty()) {
@@ -329,7 +450,7 @@ public class DrawLine extends View {
                 DataPoint point = dataList.get(i);
 
                 // 只绘制非空标签且未绘制过的时间点
-                if (!TextUtils.isEmpty(point.label) && !drawnTimes.contains(point.time)) {
+                if (!TextUtils.isEmpty(point.label) && !drawnTimes.contains(point.label)) {
                     float x = chartRect.left + i * xSpacing;
 
                     // 确保标签不会重叠
@@ -349,6 +470,19 @@ public class DrawLine extends View {
         }
     }
 
+    // 添加一个方法用于设置是否显示小网格线
+    public void setShowMinorGrid(boolean show) {
+        this.showMinorGrid = show;
+        invalidate();
+    }
+
+    // 添加一个方法用于设置网格线数量
+    public void setGridLines(int majorLines, int minorLines) {
+        this.majorGridLines = majorLines;
+        this.minorGridLines = minorLines;
+        invalidate();
+    }
+
     private void drawData(Canvas canvas) {
         if (dataQueue.isEmpty()) return;
 
@@ -357,13 +491,44 @@ public class DrawLine extends View {
         fillPath.reset();
 
         List<DataPoint> dataList = new ArrayList<>(dataQueue);
-        float xSpacing = chartRect.width() / (dataList.size() - 1);
+
+        // 计算x轴间距（注意处理只有一个点的情况）
+        float xSpacing;
+        if (dataList.size() > 1) {
+            xSpacing = chartRect.width() / (dataList.size() - 1);
+        } else {
+            xSpacing = chartRect.width(); // 只有一个点时，放在中间
+        }
+
+        // 计算数据范围，避免在循环中重复计算
+        float dataRange = maxValue - minValue;
+        if (dataRange == 0) {
+            dataRange = 1.0f; // 避免除零
+        }
+
+        boolean firstPoint = true;
 
         for (int i = 0; i < dataList.size(); i++) {
             DataPoint point = dataList.get(i);
-            float x = chartRect.left + i * xSpacing;
-            float y = chartRect.bottom - ((point.value - minValue) / (maxValue - minValue)) * chartRect.height();
-            y = Math.min(chartRect.bottom, Math.max(chartRect.top, y));
+
+            // 计算x坐标
+            float x;
+            if (dataList.size() > 1) {
+                x = chartRect.left + i * xSpacing;
+            } else {
+                x = chartRect.left + chartRect.width() / 2; // 只有一个点时放在中间
+            }
+
+            // 修复：计算y坐标，需要将数据值映射到图表区域
+            // 公式修正：chartRect.top + (1 - normalizedValue) * chartRect.height()
+            float normalizedValue = (point.value - minValue) / dataRange;
+            normalizedValue = Math.max(0, Math.min(1, normalizedValue)); // 限制在0-1之间
+
+            // 修正y坐标计算：确保数据值越大，在图表上位置越高（屏幕坐标向下为正）
+            float y = chartRect.top + (1 - normalizedValue) * chartRect.height();
+
+            // 确保y在图表区域内
+            y = Math.max(chartRect.top, Math.min(chartRect.bottom, y));
 
             // 绘制数据点（只绘制部分点，避免性能问题）
             if (i % 5 == 0 || i == dataList.size() - 1) {
@@ -371,10 +536,11 @@ public class DrawLine extends View {
             }
 
             // 创建折线路径
-            if (i == 0) {
+            if (firstPoint) {
                 dataPath.moveTo(x, y);
                 fillPath.moveTo(x, chartRect.bottom);
                 fillPath.lineTo(x, y);
+                firstPoint = false;
             } else {
                 dataPath.lineTo(x, y);
                 fillPath.lineTo(x, y);
@@ -382,27 +548,143 @@ public class DrawLine extends View {
         }
 
         // 闭合填充路径
-        fillPath.lineTo(chartRect.right, chartRect.bottom);
-        fillPath.lineTo(chartRect.left, chartRect.bottom);
-        fillPath.close();
+        if (!firstPoint) { // 确保至少有一个点
+            fillPath.lineTo(chartRect.right, chartRect.bottom);
+            fillPath.lineTo(chartRect.left, chartRect.bottom);
+            fillPath.close();
 
-        canvas.drawPath(fillPath, fillPaint);// 绘制填充区域
-        canvas.drawPath(dataPath, dataPaint);// 绘制折线
+            // 绘制填充区域和折线
+            canvas.drawPath(fillPath, fillPaint);
+            canvas.drawPath(dataPath, dataPaint);
+        }
 
-        // 绘制最新值
+        // 绘制最新值标签
         if (!dataList.isEmpty()) {
-            float lastValue = dataList.get(dataList.size() - 1).value;
-            float lastX = chartRect.right;
-            float lastY = chartRect.bottom - ((lastValue - minValue) / (maxValue - minValue)) * chartRect.height();
+            DataPoint lastPoint = dataList.get(dataList.size() - 1);
+            float lastX;
+            if (dataList.size() > 1) {
+                lastX = chartRect.left + (dataList.size() - 1) * xSpacing;
+            } else {
+                lastX = chartRect.left + chartRect.width() / 2;
+            }
+
+            // 使用相同的公式计算最后一个点的y坐标
+            float normalizedValue = (lastPoint.value - minValue) / dataRange;
+            normalizedValue = Math.max(0, Math.min(1, normalizedValue));
+            float lastY = chartRect.top + (1 - normalizedValue) * chartRect.height();
+            lastY = Math.max(chartRect.top, Math.min(chartRect.bottom, lastY));
 
             Paint valuePaint = new Paint(textPaint);
             valuePaint.setTextSize(36f);
             valuePaint.setColor(Color.parseColor("#FF5722"));
             valuePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-            //canvas.drawText(String.format(Locale.getDefault(), "%.1f", lastValue), lastX - 40, lastY - 20, valuePaint);//绘制数据值标签，但没必要
+
+            // 显示当前值
+            String valueText = String.format(Locale.getDefault(), "%.1f", lastPoint.value);
+            // 将标签放在点的上方
+            canvas.drawText(valueText, lastX, lastY - 30, valuePaint);
         }
     }
 
+    // 添加ScaleListener手势监测内部类
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            float scaleFactor = detector.getScaleFactor();
+            // 限制缩放范围
+            scaleFactor = Math.max(0.5f, Math.min(scaleFactor, 2.0f));
+
+            // 只调整最大值，保持最小值不变
+            float currentRange = maxValue - minValue;
+            float newRange = currentRange * scaleFactor;
+
+            // 确保最小范围
+            if (newRange < 1.0f) {
+                newRange = 1.0f;
+            }
+
+            // 只调整最大值
+            maxValue = minValue + newRange;
+
+            // 缩放时禁用自动调整
+            autoAdjustRange = false;
+            postInvalidate();
+            return true;
+        }
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            isScaling = true;
+            // 记录当前范围作为基准
+            baseRange = maxValue - minValue;
+            return true;
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+            isScaling = false;
+            postInvalidate();
+        }
+    }
+
+    // 重写onTouchEvent方法
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        scaleDetector.onTouchEvent(event);
+
+        final int action = event.getAction();
+        switch (action & MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN:
+                touchStartX = event.getX();
+                touchStartY = event.getY();
+                break;
+
+            case MotionEvent.ACTION_POINTER_DOWN:
+                // 双指触摸开始
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+                if (!isScaling && event.getPointerCount() == 2) {
+                    // 双指移动时开始缩放
+                    scaleDetector.onTouchEvent(event);
+                } else if (event.getPointerCount() == 1 && !isScaling) {
+                    // 单指滑动调整范围：只调整最大值，保持最小值不变
+                    float deltaY = event.getY() - touchStartY;
+                    if (Math.abs(deltaY) > minTouchDistance) {
+                        // 计算调整量（基于当前范围的百分比）
+                        float currentRange = maxValue - minValue;
+                        float rangeAdjust = currentRange * 0.1f;
+
+                        if (deltaY > 0) {
+                            // 向下滑动，减小最大值（范围变小）
+                            maxValue = maxValue - rangeAdjust;
+                            // 确保最大值始终大于最小值
+                            if (maxValue <= minValue + 0.1f) {
+                                maxValue = minValue + 0.1f;
+                            }
+                        } else {
+                            // 向上滑动，增加最大值（范围变大）
+                            maxValue = maxValue + rangeAdjust;
+                            // 限制最大范围
+                            if (maxValue > minValue + currentRange * 5) {
+                                maxValue = minValue + currentRange * 5;
+                            }
+                        }
+
+                        touchStartY = event.getY();
+                        autoAdjustRange = false; // 手动调整后禁用自动调整
+                        postInvalidate();
+                    }
+                }
+                break;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                isScaling = false;
+                break;
+        }
+        return true;
+    }
     //添加设置范围的方法
     public void setYRange(float min, float max, boolean reset) {
         if (reset) {
@@ -416,6 +698,33 @@ public class DrawLine extends View {
         if (maxValue - minValue < 1) {
             maxValue = minValue + 1;
         }
+        postInvalidate();
+    }
+
+    // 添加重置缩放的方法
+    public void resetZoom() {
+        scaleFactor = 1.0f;
+        autoAdjustRange = true;
+        postInvalidate();
+    }
+    // 添加手动设置范围的方法（更精确）
+    public void setYRangePrecise(float min, float max, boolean reset) {
+        if (reset) {
+            minValue = min;
+            maxValue = max;
+        } else {
+            // 平滑过渡到新范围
+            float transitionFactor = 0.3f;
+            minValue = minValue + (min - minValue) * transitionFactor;
+            maxValue = maxValue + (max - maxValue) * transitionFactor;
+        }
+
+        // 确保有效范围
+        if (maxValue - minValue < 0.1f) {
+            maxValue = minValue + 0.1f;
+        }
+
+        autoAdjustRange = false; // 手动设置后禁用自动调整
         postInvalidate();
     }
 
@@ -433,12 +742,29 @@ public class DrawLine extends View {
         return values;
     }
 
-    // 如果需要获取完整的数据点对象，可以添加这个方法
-    public List<DataPoint> getDataPointObjects() {
-        return new ArrayList<>(dataQueue);
+    //设置数据标签    @param label 标签文本
+    public void setDataLabel(String label) {
+        this.dataLabel = label;
     }
 
-    //清空所有数据
+    //绘制图表标题，没用到噢
+    private void drawTitleAndStats(Canvas canvas) {
+        Paint titlePaint = new Paint(textPaint);
+        titlePaint.setTextSize(36f);
+        titlePaint.setColor(Color.parseColor("#37474F"));
+        titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        //String title = "蓝牙数据实时监测";
+        //canvas.drawText(title, getWidth() / 2, 40, titlePaint);
+        // 绘制统计信息
+        Paint statsPaint = new Paint(textPaint);
+        statsPaint.setTextSize(28f);
+        statsPaint.setColor(Color.parseColor("#78909C"));
+
+        String stats = String.format("数据点数: %d | 范围: %.1f-%.1f", dataQueue.size(), minValue, maxValue);
+        canvas.drawText(stats, getWidth() / 2, 80, statsPaint);
+    }
+
+    //清空所有数据，没用上
     public void clearData() {
         dataQueue.clear();
         //labelQueue.clear();
@@ -452,27 +778,9 @@ public class DrawLine extends View {
         postInvalidate();
     }
 
-    //设置数据标签    @param label 标签文本
-    public void setDataLabel(String label) {
-        this.dataLabel = label;
+    // 如果需要获取完整的数据点对象，可以添加这个方法，没用上
+    public List<DataPoint> getDataPointObjects() {
+        return new ArrayList<>(dataQueue);
     }
 
-    //绘制图表标题，没用到噢
-    private void drawTitleAndStats(Canvas canvas) {
-        Paint titlePaint = new Paint(textPaint);
-        titlePaint.setTextSize(36f);
-        titlePaint.setColor(Color.parseColor("#37474F"));
-        titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-
-        //String title = "蓝牙数据实时监测";
-        //canvas.drawText(title, getWidth() / 2, 40, titlePaint);
-
-        // 绘制统计信息
-        Paint statsPaint = new Paint(textPaint);
-        statsPaint.setTextSize(28f);
-        statsPaint.setColor(Color.parseColor("#78909C"));
-
-        String stats = String.format("数据点数: %d | 范围: %.1f-%.1f", dataQueue.size(), minValue, maxValue);
-        canvas.drawText(stats, getWidth() / 2, 80, statsPaint);
-    }
 }

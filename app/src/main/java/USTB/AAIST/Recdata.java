@@ -15,7 +15,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -23,14 +22,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.pm.PermissionInfoCompat;
-
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -39,53 +35,45 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import USTB.AAIST.view.DrawLine;
 import USTB.AAIST.view.DrawLine2;
+import USTB.AAIST.DataProcessor;
+import android.os.SystemClock;
+import androidx.core.content.pm.PermissionInfoCompat;
 import android.bluetooth.BluetoothGattCallback;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Arrays;
 
 public class Recdata extends AppCompatActivity {
     private static final String TAG = "Recdata";//调试输出常量
     // 蓝牙相关常量
-    private static final UUID CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标1服务特征值匹配描述符
-    private static final String SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";//特征值1的服务UUID
-    private static final String CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";//指标1特征值UUID
-    private static final UUID CCC_DESCRIPTOR_UUID2 = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标2服务特征值匹配描述符，同1
-    private static final String SERVICE_UUID2 = "0000fff0-0000-1000-8000-00805f9b34fb";//特征值2的服务UUID
-    private static final String CHARACTERISTIC_UUID2 = "0000fff1-0000-1000-8000-00805f9b34fb"; // 指标2特征值UUID
+    private static final UUID CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//服务特征值匹配描述符
+    private static final String SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";//特征值的服务UUID
+    private static final String CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";//特征值UUID
     private BluetoothDevice mDevice;
-    private static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 1001; // 可以是任意唯一整数
     private MyBluetoothManager myBluetoothManager;
     private ConnectionState mConnectionState = ConnectionState.DISCONNECTED;
     private String mDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
     private BluetoothGattCharacteristic mNotifyCharacteristic;//第一个特征值引用
-    private BluetoothGattCharacteristic mNotifyCharacteristic2;//第二个特征值引用
-    private static final int BLUETOOTH_CONNECT_REQUEST_CODE = 1001;
-    //数据解析相关变量
-    private static final byte START_BYTE1 = 0x0A; // 起始标志1
-    private static final byte START_BYTE2 = (byte) 0xFA; // 起始标志2
-    private static final byte END_BYTE1 = 0x00; // 结束标志1
-    private static final byte END_BYTE2 = 0x0B; // 结束标志2
-    private static final int PACKET_LENGTH = 16; // 数据包长度
     // 绘图视图
     private DrawLine mDrawLine1;
     private DrawLine2 mDrawLine2;
-    // 存储两个指标的历史值
-    private float mPreviousValue1 = 0f;
-    private float mPreviousValue2 = 0f;
     // 数据队列用于绘图
-    private final LinkedList<Float> mDataQueue1 = new LinkedList<>();
-    private final LinkedList<Float> mDataQueue2 = new LinkedList<>();
-    private static final int MAX_DATA_POINTS = 200; // 最大存储点数
+    private final LinkedList<Float> mUriDataQueue = new LinkedList<>();    // URI数据队列
+    private final LinkedList<Float> mGluDataQueue = new LinkedList<>();    // GLU数据队列
+    private final LinkedList<Float> mUriCacheQueue = new LinkedList<>();    // URI原始数据缓存
+    private final LinkedList<Float> mGluCacheQueue = new LinkedList<>();    // GLU原始数据缓存
+    private final LinkedList<Float> mProcessedUriDataQueue = new LinkedList<>();    // 处理后的URI数据
+    private final LinkedList<Float> mProcessedGluDataQueue = new LinkedList<>();    // 处理后的GLU数据
+    private static final int MAX_QUEUE_POINTS = 200; // 绘图队列最大点数
+    private static final int MAX_CACHE_POINTS = 1000; // 缓存队列最大点数
+    private DataProcessor mDataProcessor; // DataProcessor实例
     // UI组件
     private TextView mDataDisplay;
     private TextView mValueDisplay;
     private Handler mHandler = new Handler(Looper.getMainLooper());
-    private float mPreviousValue = 0f;
     // 添加时间戳跟踪
     private long startTime = 0; // 数据接收开始时间
-    private long lastTimestamp = 0;
-    private static final long TIMESTAMP_INTERVAL = 1000; // 1秒间隔
     // 蓝牙连接状态
     private enum ConnectionState {
         DISCONNECTED,
@@ -93,6 +81,33 @@ public class Recdata extends AppCompatActivity {
         CONNECTED,
         DISCONNECTING
     }
+
+        /*
+    private final LinkedList<Float> mDataQueue1 = new LinkedList<>();
+    private final LinkedList<Float> mDataQueue2 = new LinkedList<>();
+    private static final int MAX_DATA_POINTS = 200; // 最大存储点数
+    private static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 1001; // 可以是任意唯一整数
+    // 存储两个指标的历史值
+    private float mPreviousValue1 = 0f;
+    private float mPreviousValue2 = 0f;
+    //private BluetoothGattCharacteristic mNotifyCharacteristic2;//第二个特征值引用
+
+    private static final int BLUETOOTH_CONNECT_REQUEST_CODE = 1001;
+    //数据解析相关变量
+    private static final byte START_BYTE1 = 0x0A; // 起始标志1
+    private static final byte START_BYTE2 = (byte) 0xFA; // 起始标志2
+    private static final byte END_BYTE1 = 0x00; // 结束标志1
+    private static final byte END_BYTE2 = 0x0B; // 结束标志2
+    private static final int PACKET_LENGTH = 16; // 数据包长度
+
+    private long lastTimestamp = 0;
+    private float mPreviousValue = 0f;
+    private static final long TIMESTAMP_INTERVAL = 1000; // 1秒间隔
+
+    //private static final UUID CCC_DESCRIPTOR_UUID2 = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标2服务特征值匹配描述符，同1
+    //private static final String SERVICE_UUID2 = "0000fff0-0000-1000-8000-00805f9b34fb";//特征值2的服务UUID
+    //private static final String CHARACTERISTIC_UUID2 = "0000fff1-0000-1000-8000-00805f9b34fb"; // 指标2特征值UUID
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +118,7 @@ public class Recdata extends AppCompatActivity {
 
         myBluetoothManager = MyBluetoothManager.getInstance(getApplicationContext());// 获取蓝牙管理器实例
         myBluetoothManager.setExternalCallback(mGattCallback);//设置外部回调
+        mDataProcessor = new DataProcessor();// 初始化DataProcessor
 
         // 检查设备连接状态
         if (!myBluetoothManager.isDeviceConnected()) {
@@ -116,7 +132,6 @@ public class Recdata extends AppCompatActivity {
         mDeviceAddress = myBluetoothManager.getDeviceAddress();
         if (mDeviceAddress == null || mDeviceAddress.isEmpty()) {
             Toast.makeText(this, "设备地址无效", Toast.LENGTH_SHORT).show();
-            //Log.e("Recdata", "设备地址无效");
             finish();
             return;
         }
@@ -137,6 +152,7 @@ public class Recdata extends AppCompatActivity {
             finish();
             return;
         }
+
         initViews();// 初始化UI
         initChartViews();// 初始化绘图视图
         handleIntent(getIntent());// 安全获取设备信息
@@ -147,19 +163,44 @@ public class Recdata extends AppCompatActivity {
         mDrawLine1 = findViewById(R.id.chartView1);
         mDrawLine2 = findViewById(R.id.chartView2);
 
-        // 设置初始范围和自动调整
-        mDrawLine1.setYRange(0, 100, true); // 指标1初始范围
-        mDrawLine2.setYRange(0, 50, true);// 指标2初始范围
+        // 根据数据类型设置更合理的初始范围
+        mDrawLine1.setYRange(100, 600, true);
+        mDrawLine1.setDataLabel("血糖(GLU)");  // chart1 显示血糖
 
-        // 启用自动范围调整
+        mDrawLine2.setYRange(3, 15, true);
+        mDrawLine2.setDataLabel("尿酸(URI)");  // chart2 显示尿酸
+
+        // 启用小网格线显示
+        mDrawLine1.setShowMinorGrid(true);
+        mDrawLine2.setShowMinorGrid(true);
+
+        // 设置主副刻度线数量（5条主网格线，每个主网格线之间有4条小网格线）
+        mDrawLine1.setGridLines(5, 4);
+        mDrawLine2.setGridLines(5, 4);
+
+        // 启用自动范围调整，但设置合理的限制
         mDrawLine1.setAutoAdjustRange(true);
         mDrawLine1.setAutoAdjustEnabled(true);
-        mDrawLine2.setAutoAdjustRange(true); //指标2的y轴自动调整
+        mDrawLine2.setAutoAdjustRange(true);
         mDrawLine2.setAutoAdjustEnabled(true);
 
         // 初始化绘图参数
-        mDrawLine1.setMaxPoints(MAX_DATA_POINTS);
-        mDrawLine2.setMaxPoints(MAX_DATA_POINTS);
+        mDrawLine1.setMaxPoints(MAX_QUEUE_POINTS);
+        mDrawLine2.setMaxPoints(MAX_QUEUE_POINTS);
+
+        // 添加触摸监听，支持双指缩放
+        setupChartTouchListeners();
+    }
+
+    // 触摸监听设置
+    private void setupChartTouchListeners() {
+        // 可以为图表添加双击重置等手势
+        mDrawLine1.setOnClickListener(v -> {
+            mDrawLine1.resetZoom();// 双击重置缩放
+        });
+        mDrawLine2.setOnClickListener(v -> {
+            mDrawLine2.resetZoom();
+        });
     }
 
     //异步断开蓝牙连接
@@ -208,7 +249,6 @@ public class Recdata extends AppCompatActivity {
             }
             mDataDisplay.setMovementMethod(new ScrollingMovementMethod());
         } catch (Exception e) {
-            //Log.e(TAG, "初始化视图失败", e);
             Toast.makeText(this, "初始化界面失败: " + e.getMessage(), Toast.LENGTH_LONG).show();
             finish();
         }
@@ -258,9 +298,7 @@ public class Recdata extends AppCompatActivity {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                if (characteristic.getUuid().equals(UUID.fromString(CHARACTERISTIC_UUID2))) {
-                    processReceivedData(characteristic.getValue(), 2);
-                }
+                Log.d(TAG, "特征值读取成功");
             }
         }
 
@@ -268,7 +306,6 @@ public class Recdata extends AppCompatActivity {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                //Log.e(TAG, "连接错误，状态码: " + status);
                 handleConnectionFailure();
                 return;
             }
@@ -305,71 +342,49 @@ public class Recdata extends AppCompatActivity {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             super.onDescriptorWrite(gatt, descriptor, status);
-            //Log.d(TAG, "描述符写入状态: " + status + ", UUID: " + descriptor.getCharacteristic().getUuid());
             UUID charUuid = descriptor.getCharacteristic().getUuid();
-            String charName = charUuid.equals(UUID.fromString(CHARACTERISTIC_UUID)) ? "特征1" :
-                    charUuid.equals(UUID.fromString(CHARACTERISTIC_UUID2)) ? "特征2" : "未知特征";
 
+            String charName = charUuid.equals(UUID.fromString(CHARACTERISTIC_UUID)) ? "特征值" : "未知特征";
             Log.d(TAG, "描述符写入状态: " + status + ", 特征: " + charName + ", UUID: " + charUuid);
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
-            //调试日志
-            //Log.d(TAG, "收到数据 UUID: " + characteristic.getUuid());
-            //Log.d(TAG, "数据内容: " + Arrays.toString(characteristic.getValue()));
-
             try {
                 UUID charUuid = characteristic.getUuid();
-                //Log.d(TAG, "特征值变化: " + charUuid + " 数据长度: " + characteristic.getValue().length);
-
-                if (charUuid.equals(UUID.fromString(CHARACTERISTIC_UUID))) {//处理服务1特征值1下接收到的第一通道数据
+                if (charUuid.equals(UUID.fromString(CHARACTERISTIC_UUID))) {
                     byte[] data = characteristic.getValue();
-                    // 添加详细日志
-                    //Log.d(TAG, "指标1原始数据: " + Arrays.toString(data));
-                    String ascii = bytesToAscii(data);
-                    //Log.d(TAG, "指标1的ASCII: " + ascii);
-                    processReceivedData(characteristic.getValue(), 1);
-
-                } else if (charUuid.equals(UUID.fromString(CHARACTERISTIC_UUID2))) {//处理服务2特征值2下接收到的第二通道数据
-                    byte[] data = characteristic.getValue();
-                    Log.d(TAG, "特征2原始数据(HEX): " + bytesToHex(data));
-                    // 添加详细日志
-                    Log.d(TAG, "指标2原始数据: " + Arrays.toString(data));
-                    String ascii = bytesToAscii(data);
-                    Log.d(TAG, "指标2的ASCII: " + ascii);
-                    processReceivedData(characteristic.getValue(), 2);
+                    if (data != null && data.length > 0) {
+                        String receivedData = new String(data, "UTF-8").trim();
+                        Log.d(TAG, "收到原始数据: " + bytesToHex(data));
+                        Log.d(TAG, "收到数据字符串: " + receivedData);
+                        mHandler.post(() -> parseSensorData(receivedData));// 异步处理数据，避免阻塞主线程
+                    } else {
+                        Log.w(TAG, "收到空数据或长度为0的数据");
+                    }
                 } else {
-                    Log.w(TAG, "未知特征值: " + charUuid);
+                    Log.w(TAG, "收到未知特征值的数据: " + charUuid);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "处理特征值变化时出错", e);
+                // 记录错误数据以便调试
+                if (characteristic.getValue() != null) {
+                    Log.e(TAG, "错误数据(HEX): " + bytesToHex(characteristic.getValue()));
+                }
             }
         }
     };
 
-    @SuppressLint("MissingPermission")//添加此代码便可不需要重复的权限检查
+    //添加此代码便可不需要重复的权限检查
+    @SuppressLint("MissingPermission")
     private void setupNotification(BluetoothGatt gatt) {
-        // 打印所有服务和特征值用于调试
-/*        for (BluetoothGattService service : gatt.getServices()) {
-            Log.d(TAG, "发现服务: " + service.getUuid());
-            for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-                Log.d(TAG, "特征值: " + characteristic.getUuid() + " 属性: " + characteristic.getProperties());
-            }
-        }*/
-
         BluetoothGattService service = gatt.getService(UUID.fromString(SERVICE_UUID));
-        BluetoothGattService service2 = gatt.getService(UUID.fromString(SERVICE_UUID2));
         if (service == null) {
-            Log.e(TAG, "未找到服务1: " + SERVICE_UUID );
-            return;
-        } else if (service2 == null) {
-            Log.e(TAG, "未找到服务2: " + SERVICE_UUID2 );
+            Log.e(TAG, "未找到服务: " + SERVICE_UUID);
             return;
         }
-
-        // 设置第一个特征值的通知，指标1
+        // 设置特征值的通知
         mNotifyCharacteristic = service.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID));
         if (mNotifyCharacteristic != null) {
             // 配置CCC描述符
@@ -385,142 +400,174 @@ public class Recdata extends AppCompatActivity {
         } else {
             Log.e(TAG, "未找到特征: " + CHARACTERISTIC_UUID);
         }
+    }
 
-        // 设置第二个特征值的通知，指标2
-        mNotifyCharacteristic2 = service2.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID2));
-        if (mNotifyCharacteristic2 == null) {
-            Log.e(TAG, "未找到特征2: " + CHARACTERISTIC_UUID2);//避免空指针
-            return;
-        }
+    //数据提取与绘图关键代码
+    // 尿酸(URI) → mDataDisplay → DrawLine1
+    // 血糖(GLU) → mValueDisplay → DrawLine2
+    private void parseSensorData(String dataString) {
+        try {
+            Pattern pattern = Pattern.compile("URI=([0-9]+\\.[0-9]+),GLU=([0-9]+\\.[0-9]+)");   // 正则表达式提取URI和GLU的浮点数值
+            Matcher matcher = pattern.matcher(dataString);
 
-        // 检查特征值属性
-        int properties = mNotifyCharacteristic2.getProperties();
-        if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
-            Log.e(TAG, "特征2不支持通知属性！");
-            return;
-        }
+            if (matcher.find() && matcher.groupCount() == 2) {
+                float uriValue = Float.parseFloat(matcher.group(1));    // Group 1：原始URI值
+                float gluValue = Float.parseFloat(matcher.group(2));    // Group 2：原始GLU值
 
-        // 启用通知并写入描述符
-        if (!gatt.setCharacteristicNotification(mNotifyCharacteristic2, true)) {
-            Log.e(TAG, "无法启用特征2通知");
-        }
+                Log.d(TAG, String.format("解析成功: URI=%.3f, GLU=%.3f", uriValue, gluValue));
 
-        if (mNotifyCharacteristic2 != null) {
-            gatt.setCharacteristicNotification(mNotifyCharacteristic2, true);
-            BluetoothGattDescriptor descriptor2 = mNotifyCharacteristic2.getDescriptor(CCC_DESCRIPTOR_UUID2);
-            if (descriptor2 != null) {
-                descriptor2.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                gatt.writeDescriptor(descriptor2);
+                // 使用DataProcessor处理和缓存数据
+                if (mDataProcessor != null) {
+                    mDataProcessor.processAndCache(uriValue, gluValue);
+                }
+
+                // 更新UI
+                runOnUiThread(() -> {
+                    // 获取当前时间（秒）
+                    if (startTime == 0) {
+                        startTime = System.currentTimeMillis();
+                    }
+                    float seconds = (System.currentTimeMillis() - startTime) / 1000.0f;
+
+                    // ============ 从DataProcessor获取处理后的数据 ============
+                    float[] processedUriArray = mDataProcessor.getProcessedUriData();
+                    float[] processedGluArray = mDataProcessor.getProcessedGluData();
+
+                    float processedUri = 0f;
+                    float processedGlu = 0f;
+
+                    if (processedUriArray.length > 0) {
+                        processedUri = processedUriArray[processedUriArray.length - 1];
+                    }
+                    if (processedGluArray.length > 0) {
+                        processedGlu = processedGluArray[processedGluArray.length - 1];
+                    }
+
+                    // ============ 0.选择数据源进行绘图 ============
+                    // a.使用原始数据绘制曲线（取消下面的注释，并注释掉方法b）
+                    float uriToPlot = uriValue;
+                    float gluToPlot = gluValue;
+                    Log.d(TAG, String.format("使用原始数据绘图: URI=%.3f, GLU=%.3f", uriToPlot, gluToPlot));
+
+                    // b.使用处理后的数据绘制曲线（取消下面的注释，并注释掉方法a）
+/*                    float uriToPlot = processedUri;
+                    float gluToPlot = processedGlu;
+                    Log.d(TAG, String.format("使用处理后数据绘图: URI=%.3f, GLU=%.3f", uriToPlot, gluToPlot));*/
+                    // ============ 0.选择数据源进行绘图 ============
+
+                    //步骤0和1要对应分别同步进行注释/解注
+
+                    // ============ 1.文本显示 ============
+                    // 取消注释,使用原始数据显示
+                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.3f", uriValue));
+                    mValueDisplay.setText(String.format(Locale.getDefault(), "%.3f", gluValue));
+                    // 取消注释,使用处理后数据显示
+/*                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.3f", processedUri));
+                    mValueDisplay.setText(String.format(Locale.getDefault(), "%.3f", processedGlu));*/
+                    // ============ 1.文本显示 ============
+
+                    // 2. 更新数据队列 - URI队列用于DrawLine1，GLU队列用于DrawLine2
+                    updateDataQueue(mUriDataQueue, uriToPlot, MAX_QUEUE_POINTS);
+                    updateDataQueue(mGluDataQueue, gluToPlot, MAX_QUEUE_POINTS);
+
+                    // 3. 绘制曲线 - DrawLine1绘制尿酸，DrawLine2绘制血糖
+                    mDrawLine1.addDataPoint(gluToPlot, seconds);
+                    mDrawLine2.addDataPoint(uriToPlot, seconds);
+
+                    // ============ 缓存数据用于后续分析 ============
+                    // 始终缓存原始数据，便于后续分析和回滚
+                    updateDataQueue(mUriCacheQueue, uriValue, MAX_CACHE_POINTS);
+                    updateDataQueue(mGluCacheQueue, gluValue, MAX_CACHE_POINTS);
+                    // 缓存处理后的数据
+                    updateDataQueue(mProcessedUriDataQueue, processedUri, MAX_CACHE_POINTS);
+                    updateDataQueue(mProcessedGluDataQueue, processedGlu, MAX_CACHE_POINTS);
+                    // ============ 缓存数据用于后续分析 ============
+
+                    // 启用自动调整，图表根据数据动态调整范围
+                    mDrawLine1.setAutoAdjustRange(true);
+                    mDrawLine2.setAutoAdjustRange(true);
+
+                    // ============ 添加数据日志 ============
+                    Log.d(TAG, String.format("数据对比 - 原始URI:%.3f, 处理URI:%.3f", uriValue, processedUri));
+                    Log.d(TAG, String.format("数据对比 - 原始GLU:%.3f, 处理GLU:%.3f", gluValue, processedGlu));
+                });
+            } else {
+                Log.w(TAG, "数据格式不匹配: " + dataString);
             }
-        } else {
-            Log.w(TAG, "未找到特征2: " + CHARACTERISTIC_UUID2);//能找到服务2和特征值2
-            return; // 添加错误返回
-        }
-
-
-        // 获取并写入描述符
-        BluetoothGattDescriptor descriptor2 = mNotifyCharacteristic2.getDescriptor(CCC_DESCRIPTOR_UUID2);
-        if (descriptor2 == null) {
-            Log.e(TAG, "未找到特征2的CCC描述符");//调试输出正常
-            return;
-        }
-
-        descriptor2.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-        if (!gatt.writeDescriptor(descriptor2)) { // 关键修改：检查写入结果
-            Log.e(TAG, "写入特征2的CCC描述符失败");//调试输出异常，写入失败
-        } else {
-            Log.d(TAG, "已发起特征2描述符写入请求");
-        }
-
-    }
-
-    /**
-     * 以下是数据处理相关代码，在这里更改不同的解析字节
-     * **/
-    private void processReceivedData(byte[] data, int dataType) {
-        if (data == null || data.length == 0) {
-            Log.w(TAG, "收到空数据");
-            return;
-        }
-/*
-        // 调试输出
-        Log.d(TAG, "收到数据 - 类型" + dataType + " 长度: " + data.length + " 内容: " + Arrays.toString(data));
-
-        // 直接处理为十六进制整数值
-        StringBuilder hexBuilder = new StringBuilder();
-        for (byte b : data) {
-            hexBuilder.append(String.format("%02X", b & 0xFF));
-        }
-        String hexString = hexBuilder.toString().trim();
-        Log.d(TAG, "HEX原始数据: " + hexString);*/
-
-        // 检查起始标志
-        if (data[0] != START_BYTE1 || data[1] != START_BYTE2) {
-            //Log.w(TAG, "起始标志错误");
-            return;
-        }
-
-        // 检查结束标志
-        if (data[14] != END_BYTE1 || data[15] != END_BYTE2) {
-            //Log.w(TAG, "结束标志错误");
-            return;
-        }
-        int Index1Value = ((data[5] & 0xFF) | ((data[6] & 0xFF) << 8));// 解析数据结果（字节5和6，低字节在前）
-        int Index2Value = ((data[11] & 0xFF) | ((data[12] & 0xFF) << 8));// 解析数据结果（字节5和6，低字节在前）//逻辑很简单，直接解析不同的数据位
-        Log.d(TAG, "类型" + dataType + "值:" + Index2Value);
-        // 添加合理范围检查（0-3000）
-        if (Index1Value >= 0 && Index1Value <= 3000) {
-            //Log.d(TAG, "解析成功 - 类型" + dataType + "值:" + Index1Value);
-            updateUIWithValue(Index1Value,Index2Value,dataType);
-        } else {
-            //Log.w(TAG, "值超出范围: " + Index1Value);
+        } catch (Exception e) {
+            Log.e(TAG, "解析传感器数据失败: " + dataString, e);
         }
     }
 
-    /**
-     * 统一更新UI
-     * 这里是通过@dataType参数实现的更新不同通道数据，如果是1则更新指标1，是2则更新指标2，其中，1、2分别为服务特征值的UUID
-     * 使用不同的特征值来区分不同的数据通道是GATT架构最自然、最标准的使用方式
-     * 另外的一种办法便是同一个特征值UUID的不同数据位解析得到数据进行不同指标的更新
-     * 当数据相关性极强时，打包方案可能更优。比如九轴姿态传感器（加速度+陀螺仪+磁力计），厂商常把9个int16打包进一个特征值。这样单次通知就能获取完整姿态数据，避免三次通信延迟。
-     * 如果所有通道数据打包进一个特征值，即使只有一个通道的数据更新了，也必须发送整个数据包（包含所有通道当前的数据）。这会显著增加不必要的空中传输开销，尤其当数据包较大或更新频繁但不同步时，浪费带宽和功耗。
-     **/
-    private void updateUIWithValue(float value, float value2, int dataType) {//原本参数只有1个value，两个特征值的话自己加的value2
+    private void updateDataQueue(LinkedList<Float> queue, float value, int maxSize) {
+        if (queue == null) {queue = new LinkedList<>();}
+        if (queue.size() >= maxSize) {queue.removeFirst();}
+        queue.addLast(value);
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        return sb.toString();
+    }
+
+    @SuppressLint("MissingPermission")
+    private void disconnectGatt() {
+        if (mBluetoothGatt == null) return;
+        mConnectionState = ConnectionState.DISCONNECTING;
+        try {
+            mBluetoothGatt.disconnect();
+            mBluetoothGatt.close();
+        } catch (Exception e) {
+            Log.e(TAG, "断开连接时出错", e);
+        } finally {
+            mBluetoothGatt = null;
+            mConnectionState = ConnectionState.DISCONNECTED;
+        }
+    }
+
+    private void handleConnectionFailure() {
         runOnUiThread(() -> {
-            // 如果是第一次收到数据，记录起始时间
-            if (startTime == 0) {
-                startTime = System.currentTimeMillis();
-            }
-            float seconds = (System.currentTimeMillis() - startTime) / 1000.0f;// 使用系统时间，计算相对时间（秒）
-            // 始终更新图表数据（但图表会自己处理标签）
-            if (dataType == 1) {
-                mValueDisplay.setText(String.format(Locale.getDefault(), "%.1f", value));//"%d", (int)value 强制转为整型格式
-                //更新数据队列
-                updateDataQueue(mDataQueue1, value);
-                mDrawLine1.addDataPoint(value, seconds);
-
-
-                mDataDisplay.setText(String.format(Locale.getDefault(), "%.1f", value2));
-                //Log.d(TAG, "解析成功 - 类型" + dataType + "值:" + value2);
-                // 更新数据队列
-                updateDataQueue(mDataQueue2, value2);
-                mDrawLine2.addDataPoint(value2, seconds);
-            } else if (dataType == 2) {
-                //以下代码是通过不同的特征值进行获取数据的代码实现
-/*                mDataDisplay.setText(String.format(Locale.getDefault(), "%.2f", value2));
-                //Log.d(TAG, "解析成功 - 类型" + dataType + "值:" + value2);
-                // 更新数据队列
-                updateDataQueue(mDataQueue2, value2);
-                mDrawLine2.addDataPoint(value2, seconds);*/
-            }
+            Toast.makeText(Recdata.this, "蓝牙连接失败", Toast.LENGTH_LONG).show();
+            disconnectGatt();
+            finish();
         });
     }
 
-    private void updateDataQueue(LinkedList<Float> queue, float value) {
-        if (queue.size() >= MAX_DATA_POINTS) {
-            queue.removeFirst();
+    private void cleanup() {
+        mHandler.removeCallbacksAndMessages(null);
+        disconnectGatt();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mHandler.removeCallbacksAndMessages(null);// 先停止数据接收
+        safeDisconnectGatt();// 再断开连接
+        super.onDestroy();
+    }
+
+/*
+    //以下是没有使用到的函数
+    //检查连接状态
+    private void checkConnectionStatus() {
+        if (mConnectionState == ConnectionState.CONNECTING) {
+            Log.w(TAG, "连接超时，强制断开");
+            disconnectGatt();
+            showErrorAndFinish("连接超时");
         }
-        queue.addLast(value);
+    }
+
+    private void cacheData(LinkedList<Float> cacheQueue, float value, int maxSize) {
+        if (cacheQueue == null) {
+            cacheQueue = new LinkedList<>();
+        }
+
+        if (cacheQueue.size() >= maxSize) {
+            cacheQueue.removeFirst();
+        }
+        cacheQueue.addLast(value);
     }
 
     private float extractValue(String input, int dataType) {
@@ -558,14 +605,6 @@ public class Recdata extends AppCompatActivity {
         return (dataType == 1) ? mPreviousValue1 : mPreviousValue2;
     }
 
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02X ", b));
-        }
-        return sb.toString();
-    }
-
     private String bytesToAscii(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -574,51 +613,6 @@ public class Recdata extends AppCompatActivity {
             }
         }
         return sb.toString();
-    }
-    /*以上是数据处理相关代码*/
-
-    @SuppressLint("MissingPermission")
-    private void disconnectGatt() {
-        if (mBluetoothGatt == null) return;
-        mConnectionState = ConnectionState.DISCONNECTING;
-        try {
-            mBluetoothGatt.disconnect();
-            mBluetoothGatt.close();
-        } catch (Exception e) {
-            Log.e(TAG, "断开连接时出错", e);
-        } finally {
-            mBluetoothGatt = null;
-            mConnectionState = ConnectionState.DISCONNECTED;
-        }
-    }
-
-    private void handleConnectionFailure() {
-        runOnUiThread(() -> {
-            Toast.makeText(Recdata.this, "蓝牙连接失败", Toast.LENGTH_LONG).show();
-            disconnectGatt();
-            finish();
-        });
-    }
-
-    private void cleanup() {
-        mHandler.removeCallbacksAndMessages(null);
-        disconnectGatt();
-    }
-
-    @Override
-    protected void onDestroy() {
-        mHandler.removeCallbacksAndMessages(null);// 先停止数据接收
-        safeDisconnectGatt();// 再断开连接
-        super.onDestroy();
-    }
-
-    //检查连接状态
-    private void checkConnectionStatus() {
-        if (mConnectionState == ConnectionState.CONNECTING) {
-            Log.w(TAG, "连接超时，强制断开");
-            disconnectGatt();
-            showErrorAndFinish("连接超时");
-        }
     }
 
     // 解析字节数组为浮点数列表
@@ -659,4 +653,6 @@ public class Recdata extends AppCompatActivity {
         }
         return true;
     }
+
+ */
 }

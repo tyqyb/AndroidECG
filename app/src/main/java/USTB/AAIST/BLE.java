@@ -39,7 +39,7 @@ import java.util.UUID;
 import USTB.AAIST.adapter.DevicesAdapterList;
 import USTB.AAIST.devicesdata.Devices;
 import android.bluetooth.BluetoothManager;
-import android.view.animation.Animation;
+import android.view.animation.Animation;        //蓝牙刷新动画相关
 import android.view.animation.AnimationUtils;
 
 public class BLE extends AppCompatActivity implements View.OnClickListener {
@@ -47,9 +47,10 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
     private static final UUID CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标1服务特征值匹配描述符
     private static final String SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";//特征值1的服务UUID
     private static final String CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";//指标1特征值UUID
-    private static final UUID CCC_DESCRIPTOR_UUID2 = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标2服务特征值匹配描述符，同1
-    private static final String SERVICE_UUID2 = "0000fff0-0000-1000-8000-00805f9b34fb";//特征值2的服务UUID
-    private static final String CHARACTERISTIC_UUID2 = "0000fff1-0000-1000-8000-00805f9b34fb"; // 指标2特征值UUID
+
+    //private static final UUID CCC_DESCRIPTOR_UUID2 = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标2服务特征值匹配描述符，同1
+    //private static final String SERVICE_UUID2 = "0000fff0-0000-1000-8000-00805f9b34fb";//特征值2的服务UUID
+    //private static final String CHARACTERISTIC_UUID2 = "0000fff1-0000-1000-8000-00805f9b34fb"; // 指标2特征值UUID
 
     private static final int PERMISSION_REQUEST_BLUETOOTH_CONNECT = 102;
     private static final String TAG = "BLE_DEBUG";
@@ -367,6 +368,7 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         // 添加设备地址保存
         myBluetoothManager.setDeviceAddress(device.getAddress());
     }
+
     // Manager
     public BluetoothGatt getBluetoothGatt() {
         return mBtGatt;
@@ -467,19 +469,6 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
                     }
                 }
             }
-
-            BluetoothGattService service2 = mBtGatt.getService(UUID.fromString(SERVICE_UUID2));//获取服务2
-            if (service2 != null) {
-                BluetoothGattCharacteristic char2 = service2.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID2));//获取特征2
-                if (char2 != null) {
-                    mBtGatt.setCharacteristicNotification(char2, true);// 启用通知2
-                    BluetoothGattDescriptor descriptor = char2.getDescriptor(CCC_DESCRIPTOR_UUID2);//获取并写入CCCD描述符
-                    if (descriptor != null) {
-                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                        mBtGatt.writeDescriptor(descriptor);
-                    }
-                }
-            }
         }
     };
 
@@ -503,6 +492,7 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         btSwitch.setChecked(false);// 关闭 GATT 后，复位 Switch 按钮状态
         myBluetoothManager.disconnect();
     }
+
     //清除搜索设备列表
     private void clearDeviceList() {
         mDevices.clear();
@@ -597,9 +587,10 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         }
     }
 
+    /*
     public boolean isBluetoothConnected() {
         return mBtGatt != null && mConnectedDeviceAddress != null;
     }
-
+        */
 
 }

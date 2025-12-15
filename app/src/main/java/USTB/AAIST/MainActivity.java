@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
             // 检查是否有目标页面需要跳转
             if (intent.hasExtra("target_page")) {
                 int targetPage = intent.getIntExtra("target_page", -1);
-                // 使用更可靠的isDeviceConnected() 方法，因为它不仅检查连接状态，还检查设备地址的有效性
+                // isDeviceConnected()，不仅检查连接状态，还检查设备地址的有效性
                 if (targetPage != -1 && MyBluetoothManager.getInstance(getApplicationContext()).isDeviceConnected()) {
                     navigateToTargetPage(targetPage);
                 }
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         cECG_Layout = findViewById(R.id.cECG_Layout);
         Recdata_Layout = findViewById(R.id.recdataid);
 
-        cECG_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_ECG));// 心电点击事件
+        cECG_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_ECG));// 心电绘制点击事件
         Recdata_Layout.setOnClickListener(view -> navigateToTargetPage(PAGE_RECDATA));// 数据接收点击事件
     }
 

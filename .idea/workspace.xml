@@ -27,11 +27,6 @@
           <theme>@style/test</theme>
         </config>
       </layout>
-      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main2.xml">
-        <config>
-          <theme>@style/test</theme>
-        </config>
-      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_offline_rate.xml">
         <config>
           <theme>@style/test</theme>
@@ -79,8 +74,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0f3eed40-47c2-49b5-bcc2-4e73dcc94ec2" name="变更" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.3/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.3/checksums/checksums.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.3/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.3/checksums/md5-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.3/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.3/checksums/sha1-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.3/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.3/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.3/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.3/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/BLE.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/BLE.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/MainActivity.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/Recdata.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/Recdata.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/view/DrawLine.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/view/DrawLine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/view/DrawLine2.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/USTB/AAIST/view/DrawLine2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_recdata.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_recdata.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -142,8 +149,8 @@
         <option value="valueResourceFile" />
         <option value="navigationResourceFile" />
         <option value="layoutResourceFile" />
-        <option value="Class" />
         <option value="resourceFile" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -169,115 +176,115 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Android App.app.executor": "Run",
-    "Application.Mat.executor": "Run",
-    "Application.Test.executor": "Run",
-    "Gradle.AndroidECG:app [:app:Mat.main()].executor": "Run",
-    "Gradle.AndroidECG:app [:app:Test.main()].executor": "Run",
-    "Gradle.E:/02-Github/02-LocalSourceCode/AndroidECG/app [:app:Test.main()].executor": "Run",
-    "Gradle.ecg_-monitoring:app [:app:Test.main()].executor": "Run",
-    "Logcat.SavePath": "C:\\Users\\yangb\\Desktop",
-    "Python.hello.executor": "Run",
-    "Python.test.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "ScreenRecorder.SavePath": "C:\\Users\\yangb\\Desktop",
-    "android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine.java_SELECTED": "DrawLine",
-    "android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine2.java_SELECTED": "DrawLine2",
-    "android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/MyView.java_SELECTED": "MyView",
-    "android-custom-viewD:/AndroidStudio/AndroidSDK/sources/android-34/android/widget/LinearLayout.java_SELECTED": "LinearLayout",
-    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_SELECTED": "RespiratoryView",
-    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_SELECTED": "Respiratory_Wave",
-    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_SELECTED": "WH_ECGView",
-    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WaveShowView.java_SELECTED": "WaveShowView",
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/ECG_allData_View.java_SELECTED": "ECG_allData_View",
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Ecg_View.java_SELECTED": "Ecg_View",
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/MyView.java_SELECTED": "MyView",
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_SELECTED": "RespiratoryView",
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_SELECTED": "Respiratory_Wave",
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_SELECTED": "WH_ECGView",
-    "android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/AAIST/view/ECG_allData_View.java_SELECTED": "ECG_allData_View",
-    "android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/AAIST/view/Ecg_View.java_SELECTED": "Ecg_View",
-    "android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/AAIST/view/MyView.java_SELECTED": "MyView",
-    "android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_SELECTED": "RespiratoryView",
-    "android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/medicalInstitute/view/Wave.java_SELECTED": "Wave",
-    "android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/zky/medicalInstitute/view/ECG_allData_View.java_SELECTED": "ECG_allData_View",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "kotlin-language-version-configured": "true",
-    "last_directory_selection": "C:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/res/drawable",
-    "last_opened_file_path": "E:/00-UstbAAIST/04-Issue/09-SoftWare/AndroidECG",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.17",
-    "project.structure.side.proportion": "0.2",
-    "recommended.upgrade.do.not.ask.for.project": "true",
-    "settings.editor.selected.configurable": "configurable.group.language",
-    "settings.editor.splitter.proportion": "0.19275825",
-    "show.migrate.to.gradle.popup": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Android App.app.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Mat.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Test.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.AndroidECG:app [:app:Mat.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.AndroidECG:app [:app:Test.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.E:/02-Github/02-LocalSourceCode/AndroidECG/app [:app:Test.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.ecg_-monitoring:app [:app:Test.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Logcat.SavePath&quot;: &quot;C:\\Users\\yangb\\Desktop&quot;,
+    &quot;Python.hello.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;ScreenRecorder.SavePath&quot;: &quot;C:\\Users\\yangb\\Desktop&quot;,
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine.java_SELECTED&quot;: &quot;DrawLine&quot;,
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine2.java_SELECTED&quot;: &quot;DrawLine2&quot;,
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/MyView.java_SELECTED&quot;: &quot;MyView&quot;,
+    &quot;android-custom-viewD:/AndroidStudio/AndroidSDK/sources/android-34/android/widget/LinearLayout.java_SELECTED&quot;: &quot;LinearLayout&quot;,
+    &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_SELECTED&quot;: &quot;RespiratoryView&quot;,
+    &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_SELECTED&quot;: &quot;Respiratory_Wave&quot;,
+    &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_SELECTED&quot;: &quot;WH_ECGView&quot;,
+    &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WaveShowView.java_SELECTED&quot;: &quot;WaveShowView&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/ECG_allData_View.java_SELECTED&quot;: &quot;ECG_allData_View&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Ecg_View.java_SELECTED&quot;: &quot;Ecg_View&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/MyView.java_SELECTED&quot;: &quot;MyView&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_SELECTED&quot;: &quot;RespiratoryView&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_SELECTED&quot;: &quot;Respiratory_Wave&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_SELECTED&quot;: &quot;WH_ECGView&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/AAIST/view/ECG_allData_View.java_SELECTED&quot;: &quot;ECG_allData_View&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/AAIST/view/Ecg_View.java_SELECTED&quot;: &quot;Ecg_View&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/AAIST/view/MyView.java_SELECTED&quot;: &quot;MyView&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_SELECTED&quot;: &quot;RespiratoryView&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/USTB/medicalInstitute/view/Wave.java_SELECTED&quot;: &quot;Wave&quot;,
+    &quot;android-custom-viewF:/00Projects/Android/project/01-ecg_-monitoring_-sysytem-master/app/src/main/java/zky/medicalInstitute/view/ECG_allData_View.java_SELECTED&quot;: &quot;ECG_allData_View&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/res/drawable&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/00-UstbAAIST/04-Issue/09-SoftWare/AndroidECG&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;recommended.upgrade.do.not.ask.for.project&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.language&quot;,
+    &quot;settings.editor.splitter.proportion&quot;: &quot;0.19275825&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   },
-  "keyToStringList": {
-    "android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine.java_DrawLine_DIMENSIONS": [
-      "1080",
-      "1920"
+  &quot;keyToStringList&quot;: {
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine.java_DrawLine_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine2.java_DrawLine2_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/DrawLine2.java_DrawLine2_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/MyView.java_MyView_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewC:/Users/yangb/Desktop/AndroidECG-main2/AndroidECG-main/app/src/main/java/USTB/AAIST/view/MyView.java_MyView_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_RespiratoryView_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_RespiratoryView_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_Respiratory_Wave_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_Respiratory_Wave_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_WH_ECGView_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_WH_ECGView_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WaveShowView.java_WaveShowView_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewE:/02-Github/02-LocalSourceCode/AndroidECG/app/src/main/java/USTB/AAIST/view/WaveShowView.java_WaveShowView_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/ECG_allData_View.java_ECG_allData_View_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/ECG_allData_View.java_ECG_allData_View_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Ecg_View.java_Ecg_View_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Ecg_View.java_Ecg_View_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/MyView.java_MyView_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/MyView.java_MyView_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_RespiratoryView_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/RespiratoryView.java_RespiratoryView_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_Respiratory_Wave_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/Respiratory_Wave.java_Respiratory_Wave_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_WH_ECGView_DIMENSIONS": [
-      "1080",
-      "1920"
+    &quot;android-custom-viewF:/00Projects/Android/aaistproject/ecg_-monitoring/app/src/main/java/USTB/AAIST/view/WH_ECGView.java_WH_ECGView_DIMENSIONS&quot;: [
+      &quot;1080&quot;,
+      &quot;1920&quot;
     ],
-    "kotlin-gradle-user-dirs": [
-      "C:\\Users\\yangb\\.gradle"
+    &quot;kotlin-gradle-user-dirs&quot;: [
+      &quot;C:\\Users\\yangb\\.gradle&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="PsdUISettings">
     <option name="MODULE_TAB" value="Default Config" />
     <option name="LAST_EDITED_SIGNING_CONFIG" value="debug" />
@@ -535,6 +542,17 @@
       <updated>1717921958930</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/AAISTSensorYb$Mat.ic" NAME="Mat Coverage Results" MODIFIED="1720428266523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true">
