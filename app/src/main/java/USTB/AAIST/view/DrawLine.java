@@ -1,4 +1,4 @@
-//连接蓝牙后跳转至Recdata页面用于展示数据，绘制指标1曲线
+//连接蓝牙后跳转至Recdata页面用于展示数据，绘制动态曲线
 package USTB.AAIST.view;
 
 import android.content.Context;
@@ -23,11 +23,9 @@ import android.graphics.Typeface;
 
 public class DrawLine extends View {
     //动态调整纵轴范围
-    private static final float RANGE_ADJUST_THRESHOLD = 0.8f;
     private boolean autoAdjustRange = true;
     //动态数据存储
     private final Queue<DataPoint> dataQueue = new LinkedList<>();
-    private final Queue<String> labelQueue = new LinkedList<>();
     private int MAX_DATA_POINTS = 50; // 最大显示点数
     private float maxValue = 1f; // 初始最大值
     private float minValue = 0f;   // 初始最小值
@@ -56,10 +54,6 @@ public class DrawLine extends View {
     private int majorGridLines = 5;  // 主网格线数量
     private int minorGridLines = 4;  // 每个主网格线之间的小网格线数量
     private boolean showMinorGrid = true;  // 是否显示小网格线
-
-
-    private long lastUpdateTime = 0;
-    private final int UPDATE_THRESHOLD = 100; // 100ms更新间隔
 
     public DrawLine(Context context) {
         super(context);
@@ -128,6 +122,47 @@ public class DrawLine extends View {
         scaleDetector = new ScaleGestureDetector(getContext(), new ScaleListener());// 初始化手势检测器
     }
 
+    // 设置数据线颜色
+    public void setDataLineColor(int color) {
+        dataPaint.setColor(color);
+        invalidate();
+    }
+
+    // 设置填充颜色
+    public void setFillColor(int color) {
+        fillPaint.setColor(color);
+        invalidate();
+    }
+
+    // 设置填充透明度 (0-255)
+    public void setFillAlpha(int alpha) {
+        fillPaint.setAlpha(alpha);
+        invalidate();
+    }
+
+    // 设置数据点颜色
+    public void setPointColor(int color) {
+        pointPaint.setColor(color);
+        invalidate();
+    }
+
+    // 设置所有颜色（一次设置多个）
+    public void setChartColors(int dataLineColor, int fillColor, int pointColor) {
+        dataPaint.setColor(dataLineColor);
+        fillPaint.setColor(fillColor);
+        pointPaint.setColor(pointColor);
+        invalidate();
+    }
+
+    // 设置所有颜色并指定填充透明度
+    public void setChartColorsWithAlpha(int dataLineColor, int fillColor, int pointColor, int fillAlpha) {
+        dataPaint.setColor(dataLineColor);
+        fillPaint.setColor(fillColor);
+        pointPaint.setColor(pointColor);
+        fillPaint.setAlpha(fillAlpha);
+        invalidate();
+    }
+
     //添加从蓝牙接收到的数据点  @param value 数据值
     public void addDataPoint(float value, float currentSeconds) {
         String label = "";
@@ -156,11 +191,9 @@ public class DrawLine extends View {
             }
         }
 
-        // 更新数据范围
-        updateDataRange(value);
+        updateDataRange(value);// 更新数据范围
 
-        // 强制重绘
-        invalidate();
+        invalidate();// 强制重绘
         postInvalidate();
     }
 
@@ -206,6 +239,7 @@ public class DrawLine extends View {
             return String.format(Locale.getDefault(), "%dh%02dm%02ds", hours, minutes, remainingSeconds);// 1小时以上：显示小时、分钟和秒
         }
     }
+
     //更智能地调整范围
     private void updateDataRange(float value) {
         if (!autoAdjustRange || dataQueue.isEmpty()) return;
@@ -232,8 +266,7 @@ public class DrawLine extends View {
             return;
         }
 
-        // 重新计算队列中的极值
-        recalculateQueueRange();
+        recalculateQueueRange();// 重新计算队列中的极值
 
         // 如果队列中只有一个数据点，或者所有点值相同
         if (queueMaxValue == queueMinValue) {
@@ -333,6 +366,7 @@ public class DrawLine extends View {
         );
     }
 
+    //曲线及网格绘制
     private void drawGrid(Canvas canvas) {
         // 绘制网格线
         int totalMajorLines = majorGridLines;
@@ -369,8 +403,7 @@ public class DrawLine extends View {
                 canvas.drawLine(chartRect.left, y, chartRect.right, y, gridPaint);
             }
 
-            // 计算对应的数值
-            float value = minValue + (maxValue - minValue) * i / totalMajorLines;
+            float value = minValue + (maxValue - minValue) * i / totalMajorLines;// 计算对应的数值
 
             // 格式化标签，根据范围决定显示小数位数
             String label;
@@ -419,11 +452,9 @@ public class DrawLine extends View {
                 labelPaint.setTextAlign(Paint.Align.RIGHT);
                 labelPaint.setColor(Color.parseColor("#455A64")); // 深灰色
 
-                // 在Y轴左侧绘制数值标签
-                canvas.drawText(label, chartRect.left - 15, y + 10, labelPaint);
+                canvas.drawText(label, chartRect.left - 15, y + 10, labelPaint);// 在Y轴左侧绘制数值标签
 
-                // 记录已绘制的标签位置
-                drawnYValues.add(y);
+                drawnYValues.add(y);// 记录已绘制的标签位置
                 lastDrawnY = y;
             }
 
@@ -433,10 +464,8 @@ public class DrawLine extends View {
             canvas.drawLine(chartRect.left - 10, y, chartRect.left, y, tickPaint);
         }
 
-        // 绘制X轴
-        canvas.drawLine(chartRect.left, chartRect.bottom, chartRect.right, chartRect.bottom, axisPaint);
-        // 绘制Y轴
-        canvas.drawLine(chartRect.left, chartRect.top, chartRect.left, chartRect.bottom, axisPaint);
+        canvas.drawLine(chartRect.left, chartRect.bottom, chartRect.right, chartRect.bottom, axisPaint);// 绘制X轴
+        canvas.drawLine(chartRect.left, chartRect.top, chartRect.left, chartRect.bottom, axisPaint);// 绘制Y轴
 
         // 绘制X轴标签（只显示部分标签）
         if (!dataQueue.isEmpty()) {
@@ -470,13 +499,13 @@ public class DrawLine extends View {
         }
     }
 
-    // 添加一个方法用于设置是否显示小网格线
+    // 设置是否显示小网格线
     public void setShowMinorGrid(boolean show) {
         this.showMinorGrid = show;
         invalidate();
     }
 
-    // 添加一个方法用于设置网格线数量
+    // 设置网格线数量
     public void setGridLines(int majorLines, int minorLines) {
         this.majorGridLines = majorLines;
         this.minorGridLines = minorLines;
@@ -524,11 +553,8 @@ public class DrawLine extends View {
             float normalizedValue = (point.value - minValue) / dataRange;
             normalizedValue = Math.max(0, Math.min(1, normalizedValue)); // 限制在0-1之间
 
-            // 修正y坐标计算：确保数据值越大，在图表上位置越高（屏幕坐标向下为正）
-            float y = chartRect.top + (1 - normalizedValue) * chartRect.height();
-
-            // 确保y在图表区域内
-            y = Math.max(chartRect.top, Math.min(chartRect.bottom, y));
+            float y = chartRect.top + (1 - normalizedValue) * chartRect.height(); // 修正y坐标计算：确保数据值越大，在图表上位置越高（屏幕坐标向下为正）
+            y = Math.max(chartRect.top, Math.min(chartRect.bottom, y));// 确保y在图表区域内
 
             // 绘制数据点（只绘制部分点，避免性能问题）
             if (i % 5 == 0 || i == dataList.size() - 1) {
@@ -579,10 +605,8 @@ public class DrawLine extends View {
             valuePaint.setColor(Color.parseColor("#FF5722"));
             valuePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 
-            // 显示当前值
-            String valueText = String.format(Locale.getDefault(), "%.1f", lastPoint.value);
-            // 将标签放在点的上方
-            canvas.drawText(valueText, lastX, lastY - 30, valuePaint);
+            String valueText = String.format(Locale.getDefault(), "%.1f", lastPoint.value);// 显示当前值
+            canvas.drawText(valueText, lastX, lastY - 30, valuePaint);// 签放在点的上方
         }
     }
 
@@ -591,8 +615,7 @@ public class DrawLine extends View {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             float scaleFactor = detector.getScaleFactor();
-            // 限制缩放范围
-            scaleFactor = Math.max(0.5f, Math.min(scaleFactor, 2.0f));
+            scaleFactor = Math.max(0.5f, Math.min(scaleFactor, 2.0f));// 限制缩放范围
 
             // 只调整最大值，保持最小值不变
             float currentRange = maxValue - minValue;
@@ -603,8 +626,7 @@ public class DrawLine extends View {
                 newRange = 1.0f;
             }
 
-            // 只调整最大值
-            maxValue = minValue + newRange;
+            maxValue = minValue + newRange;// 只调整最大值
 
             // 缩放时禁用自动调整
             autoAdjustRange = false;
@@ -615,8 +637,7 @@ public class DrawLine extends View {
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
             isScaling = true;
-            // 记录当前范围作为基准
-            baseRange = maxValue - minValue;
+            baseRange = maxValue - minValue;// 记录当前范围作为基准
             return true;
         }
 
@@ -627,7 +648,7 @@ public class DrawLine extends View {
         }
     }
 
-    // 重写onTouchEvent方法
+    // 手指触摸方法方法
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         scaleDetector.onTouchEvent(event);
@@ -685,6 +706,7 @@ public class DrawLine extends View {
         }
         return true;
     }
+
     //添加设置范围的方法
     public void setYRange(float min, float max, boolean reset) {
         if (reset) {
@@ -707,80 +729,10 @@ public class DrawLine extends View {
         autoAdjustRange = true;
         postInvalidate();
     }
-    // 添加手动设置范围的方法（更精确）
-    public void setYRangePrecise(float min, float max, boolean reset) {
-        if (reset) {
-            minValue = min;
-            maxValue = max;
-        } else {
-            // 平滑过渡到新范围
-            float transitionFactor = 0.3f;
-            minValue = minValue + (min - minValue) * transitionFactor;
-            maxValue = maxValue + (max - maxValue) * transitionFactor;
-        }
-
-        // 确保有效范围
-        if (maxValue - minValue < 0.1f) {
-            maxValue = minValue + 0.1f;
-        }
-
-        autoAdjustRange = false; // 手动设置后禁用自动调整
-        postInvalidate();
-    }
-
-    // 获取当前数据点数量
-    public int getDataCount() {
-        return dataCount;
-    }
-
-    // 获取当前数据队列的值（浮点数列表）
-    public List<Float> getDataPoints() {
-        List<Float> values = new ArrayList<>();
-        for (DataPoint point : dataQueue) {
-            values.add(point.value);
-        }
-        return values;
-    }
 
     //设置数据标签    @param label 标签文本
     public void setDataLabel(String label) {
         this.dataLabel = label;
-    }
-
-    //绘制图表标题，没用到噢
-    private void drawTitleAndStats(Canvas canvas) {
-        Paint titlePaint = new Paint(textPaint);
-        titlePaint.setTextSize(36f);
-        titlePaint.setColor(Color.parseColor("#37474F"));
-        titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        //String title = "蓝牙数据实时监测";
-        //canvas.drawText(title, getWidth() / 2, 40, titlePaint);
-        // 绘制统计信息
-        Paint statsPaint = new Paint(textPaint);
-        statsPaint.setTextSize(28f);
-        statsPaint.setColor(Color.parseColor("#78909C"));
-
-        String stats = String.format("数据点数: %d | 范围: %.1f-%.1f", dataQueue.size(), minValue, maxValue);
-        canvas.drawText(stats, getWidth() / 2, 80, statsPaint);
-    }
-
-    //清空所有数据，没用上
-    public void clearData() {
-        dataQueue.clear();
-        //labelQueue.clear();
-        dataCount = 0;
-        maxValue = 100f;
-        minValue = 0f;
-        queueMaxValue = Float.MIN_VALUE;
-        queueMinValue = Float.MAX_VALUE;
-        startTime = System.currentTimeMillis();
-        lastLabelSeconds = -1; // 重置时间标签
-        postInvalidate();
-    }
-
-    // 如果需要获取完整的数据点对象，可以添加这个方法，没用上
-    public List<DataPoint> getDataPointObjects() {
-        return new ArrayList<>(dataQueue);
     }
 
 }

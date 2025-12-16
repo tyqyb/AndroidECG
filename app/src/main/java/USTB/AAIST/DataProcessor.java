@@ -1,3 +1,4 @@
+//传感数据接收处理方法类
 package USTB.AAIST;
 import java.util.LinkedList;
 
@@ -31,13 +32,9 @@ public class DataProcessor {
     }
 
     // 获取处理后的数据数组
-    public float[] getProcessedUriData() {
-        return linkedListToFloatArray(processedUriCache);
-    }
+    public float[] getProcessedUriData() {return linkedListToFloatArray(processedUriCache);}
 
-    public float[] getProcessedGluData() {
-        return linkedListToFloatArray(processedGluCache);
-    }
+    public float[] getProcessedGluData() {return linkedListToFloatArray(processedGluCache);}
 
     private float[] linkedListToFloatArray(LinkedList<Float> list) {
         float[] array = new float[list.size()];
@@ -58,7 +55,5 @@ public class DataProcessor {
         return result;
     }
 
-    public interface ProcessingAlgorithm {
-        float process(float value);
-    }
+    public interface ProcessingAlgorithm { float process(float value);}
 }

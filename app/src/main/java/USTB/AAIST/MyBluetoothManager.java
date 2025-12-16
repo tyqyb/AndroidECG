@@ -32,23 +32,20 @@ public class MyBluetoothManager {
     private BluetoothDevice bluetoothDevice;// 新增存储BluetoothDevice对象
     private BluetoothGattCallback mGattCallback;
     private BluetoothGattCallback mExternalCallback;
+
     // 添加公共方法检查连接状态
     public boolean isConnected() {
         return isConnected && bluetoothGatt != null;
     }
+
     // 私有构造函数
     private MyBluetoothManager(Context context) {
         this.context = context.getApplicationContext(); // 使用 Application Context 避免内存泄漏
     }
+
     // 设置外部回调（供Recdata使用）
     public void setExternalCallback(BluetoothGattCallback callback) {
         this.mExternalCallback = callback;
-    }
-    // 处理特征值变化事件
-    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        if (mExternalCallback != null) {
-            mExternalCallback.onCharacteristicChanged(gatt, characteristic);
-        }
     }
 
     // 转发特征值变化事件
@@ -56,10 +53,6 @@ public class MyBluetoothManager {
         if (mExternalCallback != null) {
             mExternalCallback.onCharacteristicChanged(gatt, characteristic);
         }
-    }
-
-    public void setGattCallback(BluetoothGattCallback callback) {
-        this.mGattCallback = callback;
     }
 
     // 单例获取方法（需传入 Context）
@@ -70,52 +63,11 @@ public class MyBluetoothManager {
         return instance;
     }
 
-    public void updateGattCallback(BluetoothGattCallback callback) {
-        this.bluetoothGattCallback = callback;
-        // 注意：这不会立即生效，需要重新连接才能应用新回调
-    }
-
-    @SuppressLint("MissingPermission")
-    public void reconnectWithNewCallback(BluetoothGattCallback newCallback) {
-        if (bluetoothGatt != null && bluetoothDevice != null) {
-            // 断开旧连接
-            bluetoothGatt.disconnect();
-            bluetoothGatt.close();
-
-            // 使用新回调重新连接
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                bluetoothGatt = bluetoothDevice.connectGatt(context, false, newCallback, BluetoothDevice.TRANSPORT_LE);
-            } else {
-                bluetoothGatt = bluetoothDevice.connectGatt(context, false, newCallback);
-            }
-            this.bluetoothGattCallback = newCallback;
-        }
-    }
-
-    // 添加获取特征值的方法（根据实际UUID修改）
-    public BluetoothGattCharacteristic getCharacteristic() {
-        if (bluetoothGatt == null) return null;
-
-        BluetoothGattService service = bluetoothGatt.getService(UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"));
-        if (service != null) {
-            return service.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
-        }
-        return null;
-    }
-
     public BluetoothDevice getBluetoothDevice() {
         if (bluetoothGatt != null && bluetoothGatt.getDevice() != null) {
             return bluetoothDevice;//返回存储的BluetoothDevice
         }
         return null;
-    }
-
-    // 设置BluetoothDevice
-    public void setBluetoothDevice(BluetoothDevice device) {
-        this.bluetoothDevice = device;
-        if (device != null) {
-            this.deviceAddress = device.getAddress();
-        }
     }
 
     // 设置连接状态
@@ -137,14 +89,10 @@ public class MyBluetoothManager {
 
     }
 
-
-    public BluetoothGattCallback getBluetoothGattCallback() {
-        return bluetoothGattCallback;
-    }
-
     public String getDeviceAddress() {
         return deviceAddress;
     }
+
     // 添加设置设备地址的方法
     public void setDeviceAddress(String deviceAddress) {
         this.deviceAddress = deviceAddress;
@@ -169,7 +117,6 @@ public class MyBluetoothManager {
             bluetoothGatt = null;
         }
         bleInstance = null;
-        //deviceAddress = null; // 断开时不再清除地址，保留设备地址和设备对象以便重连
     }
 
     // 检查权限（使用 ContextCompat）
@@ -181,14 +128,9 @@ public class MyBluetoothManager {
         return true; // Android 12 以下不需要 BLUETOOTH_CONNECT 权限
     }
 
-    // 新增：权限请求方法（需在 Activity 中调用）
-    public void requestBluetoothPermissions(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            ActivityCompat.requestPermissions(activity,
-                    new String[]{Manifest.permission.BLUETOOTH_CONNECT},
-                    BLUETOOTH_PERMISSION_REQUEST_CODE
-            );
-        }
+    // 获取蓝牙Gatt实例
+    public BluetoothGatt getBluetoothGatt() {
+        return bluetoothGatt;
     }
 
     // 检查连接状态
@@ -196,13 +138,4 @@ public class MyBluetoothManager {
         return isConnected && deviceAddress != null && !deviceAddress.isEmpty();
     }
 
-    // 获取BLE实例
-    public BLE getBleInstance() {
-        return bleInstance;
-    }
-
-    // 获取蓝牙Gatt实例
-    public BluetoothGatt getBluetoothGatt() {
-        return bluetoothGatt;
-    }
 }

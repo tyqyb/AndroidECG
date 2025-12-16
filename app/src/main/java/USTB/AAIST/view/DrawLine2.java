@@ -1,28 +1,42 @@
-//连接蓝牙后跳转至Recdata页面用于展示数据，绘制指标2曲线
+//连接蓝牙后跳转至Recdata页面用于展示数据，方法继承自DrawLine
 package USTB.AAIST.view;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
 
-//方法继承自DrawLine
 public class DrawLine2 extends DrawLine {
-    public DrawLine2(Context context) {super(context);}
-    public DrawLine2(Context context, AttributeSet attrs) {super(context, attrs);}
-    public DrawLine2(Context context, AttributeSet attrs, int defStyleAttr) {super(context, attrs, defStyleAttr);}
 
-    // 可以在这里重写或添加DrawLine2特有的方法，例如，可以设置不同的颜色、样式等
-    @Override
-    protected void init() {
-        super.init();
-
-        // 可以在这里为DrawLine2设置不同的颜色或样式
-        // 例如，将数据线颜色改为绿色
-        dataPaint.setColor(Color.parseColor("#4CAF50")); // 绿色
-        fillPaint.setColor(Color.parseColor("#81C784")); // 浅绿色填充
-        pointPaint.setColor(Color.parseColor("#FF9800")); // 橙色点
-
-        // 设置数据标签为指标2
-        //setDataLabel("指标2");
+    public DrawLine2(Context context) {
+        super(context);
+        initDrawLine2Colors();
     }
+    public DrawLine2(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        initDrawLine2Colors();
+    }
+    public DrawLine2(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        initDrawLine2Colors();
+    }
+
+    // 设置颜色方案
+    private void initDrawLine2Colors() {
+        // 方法1：使用setChartColorsWithAlpha设置所有颜色和透明度
+        setChartColorsWithAlpha(
+                Color.parseColor("#4CAF50"),     // 数据线颜色：绿色
+                Color.parseColor("#81C784"),     // 填充颜色：浅绿色
+                Color.parseColor("#FF9800"),     // 数据点颜色：橙色
+                80                               // 填充透明度：80（范围0-255，值越小越透明）
+        );
+
+        // 或者使用方法2：分别设置各个颜色
+        /*
+        setDataLineColor(Color.parseColor("#4CAF50"));      // 绿色数据线
+        setFillColor(Color.parseColor("#81C784"));          // 浅绿色填充
+        setPointColor(Color.parseColor("#FF9800"));         // 橙色数据点
+        setFillAlpha(80);                                   // 填充透明度80
+        */
+    }
+
 }

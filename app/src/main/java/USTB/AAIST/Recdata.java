@@ -10,8 +10,7 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
+import java.util.LinkedList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,21 +19,16 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.Manifest;
 import androidx.appcompat.app.AppCompatActivity;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import USTB.AAIST.view.DrawLine;
 import USTB.AAIST.view.DrawLine2;
+import USTB.AAIST.utils.ChartColors;
 import USTB.AAIST.DataProcessor;
 import android.os.SystemClock;
 import androidx.core.content.pm.PermissionInfoCompat;
@@ -42,6 +36,14 @@ import android.bluetooth.BluetoothGattCallback;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Arrays;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.os.Build;
+import java.util.List;
+import android.Manifest;
 
 public class Recdata extends AppCompatActivity {
     private static final String TAG = "Recdata";//调试输出常量
@@ -81,33 +83,6 @@ public class Recdata extends AppCompatActivity {
         CONNECTED,
         DISCONNECTING
     }
-
-        /*
-    private final LinkedList<Float> mDataQueue1 = new LinkedList<>();
-    private final LinkedList<Float> mDataQueue2 = new LinkedList<>();
-    private static final int MAX_DATA_POINTS = 200; // 最大存储点数
-    private static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 1001; // 可以是任意唯一整数
-    // 存储两个指标的历史值
-    private float mPreviousValue1 = 0f;
-    private float mPreviousValue2 = 0f;
-    //private BluetoothGattCharacteristic mNotifyCharacteristic2;//第二个特征值引用
-
-    private static final int BLUETOOTH_CONNECT_REQUEST_CODE = 1001;
-    //数据解析相关变量
-    private static final byte START_BYTE1 = 0x0A; // 起始标志1
-    private static final byte START_BYTE2 = (byte) 0xFA; // 起始标志2
-    private static final byte END_BYTE1 = 0x00; // 结束标志1
-    private static final byte END_BYTE2 = 0x0B; // 结束标志2
-    private static final int PACKET_LENGTH = 16; // 数据包长度
-
-    private long lastTimestamp = 0;
-    private float mPreviousValue = 0f;
-    private static final long TIMESTAMP_INTERVAL = 1000; // 1秒间隔
-
-    //private static final UUID CCC_DESCRIPTOR_UUID2 = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");//指标2服务特征值匹配描述符，同1
-    //private static final String SERVICE_UUID2 = "0000fff0-0000-1000-8000-00805f9b34fb";//特征值2的服务UUID
-    //private static final String CHARACTERISTIC_UUID2 = "0000fff1-0000-1000-8000-00805f9b34fb"; // 指标2特征值UUID
-    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,6 +137,16 @@ public class Recdata extends AppCompatActivity {
     private void initChartViews() {
         mDrawLine1 = findViewById(R.id.chartView1);
         mDrawLine2 = findViewById(R.id.chartView2);
+
+        // 设置DrawLine1（血糖图表）的颜色
+        mDrawLine1.setChartColorsWithAlpha(
+                ChartColors.GLU_LINE_COLOR,
+                ChartColors.GLU_FILL_COLOR,
+                ChartColors.GLU_POINT_COLOR,
+                ChartColors.GLU_FILL_ALPHA
+        );
+
+        // DrawLine2已经在自己的initDrawLine2Colors()中设置了颜色，如果需要覆盖，可以在这里再次设置，包括刻度线颜色，方法通line1
 
         // 根据数据类型设置更合理的初始范围
         mDrawLine1.setYRange(100, 600, true);
@@ -548,111 +533,4 @@ public class Recdata extends AppCompatActivity {
         super.onDestroy();
     }
 
-/*
-    //以下是没有使用到的函数
-    //检查连接状态
-    private void checkConnectionStatus() {
-        if (mConnectionState == ConnectionState.CONNECTING) {
-            Log.w(TAG, "连接超时，强制断开");
-            disconnectGatt();
-            showErrorAndFinish("连接超时");
-        }
-    }
-
-    private void cacheData(LinkedList<Float> cacheQueue, float value, int maxSize) {
-        if (cacheQueue == null) {
-            cacheQueue = new LinkedList<>();
-        }
-
-        if (cacheQueue.size() >= maxSize) {
-            cacheQueue.removeFirst();
-        }
-        cacheQueue.addLast(value);
-    }
-
-    private float extractValue(String input, int dataType) {
-        if (TextUtils.isEmpty(input)) {
-            return (dataType == 1) ? mPreviousValue1 : mPreviousValue2;
-        }
-
-        try {
-            // 尝试直接解析为浮点数
-            float value = Float.parseFloat(input);
-            if (dataType == 1) {
-                mPreviousValue1 = value;
-            } else {
-                mPreviousValue2 = value;
-            }
-            return value;
-        } catch (NumberFormatException e) {
-            // 使用正则表达式提取数值
-            Pattern pattern = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+");
-            Matcher matcher = pattern.matcher(input);
-            if (matcher.find()) {
-                try {
-                    float value = Float.parseFloat(matcher.group());
-                    if (dataType == 1) {
-                        mPreviousValue1 = value;
-                    } else {
-                        mPreviousValue2 = value;
-                    }
-                    return value;
-                } catch (NumberFormatException ex) {
-                    Log.w(TAG, "数值提取失败: " + matcher.group());
-                }
-            }
-        }
-        return (dataType == 1) ? mPreviousValue1 : mPreviousValue2;
-    }
-
-    private String bytesToAscii(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            if (b >= 32 && b <= 126) {
-                sb.append((char) b);
-            }
-        }
-        return sb.toString();
-    }
-
-    // 解析字节数组为浮点数列表
-    private List<Float> parseFloatArray(byte[] data) {
-        List<Float> values = new ArrayList<>();
-        ByteBuffer buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
-        try {
-            while (buffer.remaining() >= 4) {
-                values.add(buffer.getFloat());
-            }
-            Log.d(TAG, "解析为浮点数组: " + values);
-        } catch (Exception e) {
-            Log.e(TAG, "浮点数组解析失败", e);
-        }
-        return values;
-    }
-
-    //请求蓝牙权限
-    private void requestBluetoothPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            try {
-                requestPermissions(
-                        new String[]{Manifest.permission.BLUETOOTH_CONNECT},
-                        BLUETOOTH_PERMISSION_REQUEST_CODE
-                );
-            } catch (Exception e) {
-                Log.e(TAG, "请求蓝牙权限失败", e);
-                Toast.makeText(this, "无法请求蓝牙权限", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    //检查蓝牙权限
-    private boolean checkBluetoothPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            return checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) ==
-                    PackageManager.PERMISSION_GRANTED;
-        }
-        return true;
-    }
-
- */
 }
