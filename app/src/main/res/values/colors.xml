@@ -10,6 +10,7 @@
     <color name="DrawLineColor">#FF000000</color><!--绘图曲线颜色-->
     <color name="GrayBackgroundColor">#F1F3F5</color><!--主背景色-->
     <color name="gray">#656565</color><!--状态栏文字颜色-->
+    <color name="Light_gray">#BABABA</color><!--状态栏文字颜色-->
     <color name="trans">#00000000</color><!--ECG_allData_View背景颜色-->
     <color name="red">#C50303</color>
     <color name="blue">#1A73E8</color>

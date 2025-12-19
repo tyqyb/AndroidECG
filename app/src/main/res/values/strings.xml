@@ -8,6 +8,7 @@
     <string name="main_EMG">肌电测量</string>
     <string name="main_EOG">眼电测量</string>
     <string name="search_device">搜索设备</string>
+    <string name="target_device">目标设备：CH9141BLE</string>
     <string name="receive_data">接收数据</string>
     <string name="send_data">发送数据</string>
     <string name="status_flag">状态标记</string>

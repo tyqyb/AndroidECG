@@ -358,13 +358,15 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            // 先检查权限
+
             if (!checkBluetoothPermission()) {
-                requestBluetoothPermissions();
+                requestBluetoothPermissions();// 先检查权限
                 return;
             }
+
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 Log.e(TAG, "连接失败: " + status); //连接状态监听
+                runOnUiThread(() -> {updateConnectionState("连接失败，错误码: " + status);});
                 return;
             }
 
@@ -383,22 +385,23 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     mBtGatt = gatt;
                     mConnectedDeviceAddress = gatt.getDevice().getAddress();
+
+                    updateConnectionState("已连接，正在发现服务...");// 与onServicesDiscovered保持一致的状态提示
+
                     //传递当前回调实例
-                    myBluetoothManager.setConnected(
-                            BLE.this,
-                            mBtGatt,
-                            mGattCallback  // 传递当前回调
-                    );
+                    myBluetoothManager.setConnected(BLE.this, mBtGatt, mGattCallback); // 传递当前回调
                     myBluetoothManager.setDeviceAddress(mConnectedDeviceAddress);// 设置设备地址
 
                     if (!mBtGatt.discoverServices()) {
                         Log.e(TAG, "启动服务发现失败");
+                        updateConnectionState("服务发现失败");
                     }
-                    updateConnectionState("已连接，正在发现服务...");
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    // 根据onServicesDiscovered中的逻辑，验证失败时使用不同的提示
                     updateConnectionState("连接断开");
                     closeGatt();
                     btSwitch.setChecked(false);
+
                     // 通知单例断开连接
                     if (myBluetoothManager != null) {
                         myBluetoothManager.disconnect();
@@ -418,15 +421,67 @@ public class BLE extends AppCompatActivity implements View.OnClickListener {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                //服务发现成功
                 runOnUiThread(() -> {
+                    // 1. 验证服务和特征值是否存在
+                    BluetoothGattService targetService = gatt.getService(UUID.fromString(SERVICE_UUID));
+                    if (targetService == null) {
+                        // 服务不存在，显示错误弹窗
+                        updateConnectionState("服务不存在");
+                        Toast.makeText(BLE.this, "服务不存在", Toast.LENGTH_SHORT).show();
+                        disconnectDevice();// 断开连接
+                        return;
+                    }
+
+                    BluetoothGattCharacteristic targetCharacteristic = targetService.getCharacteristic(UUID.fromString(CHARACTERISTIC_UUID));
+                    if (targetCharacteristic == null) {
+                        // 特征值不存在，显示错误弹窗
+                        updateConnectionState("特征值不存在");
+                        Toast.makeText(BLE.this, "特征值不存在", Toast.LENGTH_SHORT).show();
+                        disconnectDevice();
+                        return;
+                    }
+
+                    // 2. 服务和特征值验证通过
                     Toast.makeText(BLE.this, "蓝牙连接成功", Toast.LENGTH_SHORT).show();
                     updateConnectionState("已连接");
-                    enableNotificationsForCharacteristics();// 启用两个特征值的通知
-                    // 跳转到选择页面
+                    enableNotificationsForCharacteristics(); // 启用特征值的通知
+
+                    // 3. 跳转到选择页面
                     Intent intent = new Intent(BLE.this, MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
                 });
+            } else {
+                // 服务发现失败
+                runOnUiThread(() -> {
+                    updateConnectionState("服务发现失败");
+                    Toast.makeText(BLE.this, "服务与通知特征不匹配", Toast.LENGTH_SHORT).show();
+                    disconnectDevice();
+                });
+            }
+        }
+
+        @SuppressLint("MissingPermission")
+        private void disconnectDevice() {
+            if (mBtGatt != null) {
+                try {
+                    mBtGatt.disconnect();
+                    mBtGatt.close();
+                } catch (Exception e) {
+                    Log.e(TAG, "断开连接失败", e);
+                } finally {
+                    mBtGatt = null;
+                    mConnectedDeviceAddress = null;
+                }
+            }
+
+            // 更新UI状态
+            updateConnectionState("连接失败");
+            btSwitch.setChecked(false);
+
+            if (myBluetoothManager != null) {
+                myBluetoothManager.disconnect();// 通知单例断开连接
             }
         }
 

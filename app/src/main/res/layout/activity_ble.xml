@@ -72,6 +72,16 @@
                 android:text="@string/search_device"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginLeft="30dp"
+                android:text="@string/target_device"
+                android:textColor="@color/Light_gray"
+                android:textSize="16sp" />
+
         </LinearLayout>
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/st_main_blue"
