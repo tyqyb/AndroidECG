@@ -182,24 +182,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/DrawView2">
 
-        <!--数值参考来源：https://metaso.cn/s/eIVO8Rn-->
+        <!--数值参考来源：Chemical Reviews,2023,123(8):5049-138.-->
         <TextView
             android:id="@+id/Index1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="汗糖参考范围：60 ~ 200 μM/L"
+            android:text="汗糖参考范围：10 ~ 300 μM/L"
             android:textColor="@color/gray"
-            android:textSize="15sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/Index2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="尿酸参考范围：24.5 ~ 35.7 μM/L"
+            android:text="尿酸参考范围：20 ~ 100 μM/L"
             android:textColor="@color/gray"
-            android:textSize="15sp" />
+            android:textSize="12sp" />
+        <TextView
+            android:id="@+id/Index3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="数据来源：Chemical Reviews,2023,123(8):5049-138."
+            android:textColor="@color/gray"
+            android:textSize="10sp" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

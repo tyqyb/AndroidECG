@@ -70,6 +70,9 @@ public class Recdata extends AppCompatActivity {
     private static final int MAX_QUEUE_POINTS = 200; // 绘图队列最大点数
     private static final int MAX_CACHE_POINTS = 1000; // 缓存队列最大点数
     private DataProcessor mDataProcessor; // DataProcessor实例
+    //数据接收缓冲区
+    private StringBuilder mReceiveBuffer = new StringBuilder();
+    private static final String LINE_END = "\r\n";
     // UI组件
     private TextView mDataDisplay;
     private TextView mValueDisplay;
@@ -341,10 +344,20 @@ public class Recdata extends AppCompatActivity {
                 if (charUuid.equals(UUID.fromString(CHARACTERISTIC_UUID))) {
                     byte[] data = characteristic.getValue();
                     if (data != null && data.length > 0) {
-                        String receivedData = new String(data, "UTF-8").trim();
+                        String chunk = new String(data, "UTF-8");          // 不 trim，保留原始字符
                         Log.d(TAG, "收到原始数据: " + bytesToHex(data));
-                        Log.d(TAG, "收到数据字符串: " + receivedData);
-                        mHandler.post(() -> parseSensorData(receivedData));// 异步处理数据，避免阻塞主线程
+                        Log.d(TAG, "收到数据块: " + chunk);
+
+                        mReceiveBuffer.append(chunk);// 追加到缓冲区
+
+                        // 循环提取所有完整行（以 \r\n 结尾）
+                        int endIndex;
+                        while ((endIndex = mReceiveBuffer.indexOf(LINE_END)) != -1) {
+                            String line = mReceiveBuffer.substring(0, endIndex);
+                            mReceiveBuffer.delete(0, endIndex + LINE_END.length());
+
+                            parseSensorData(line.trim());// 解析完整行（trim 可去除首尾空白，如多余的 \r）
+                        }
                     } else {
                         Log.w(TAG, "收到空数据或长度为0的数据");
                     }
@@ -353,7 +366,6 @@ public class Recdata extends AppCompatActivity {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "处理特征值变化时出错", e);
-                // 记录错误数据以便调试
                 if (characteristic.getValue() != null) {
                     Log.e(TAG, "错误数据(HEX): " + bytesToHex(characteristic.getValue()));
                 }
@@ -387,18 +399,21 @@ public class Recdata extends AppCompatActivity {
         }
     }
 
-    //数据提取与绘图关键代码
-    // 尿酸(URI) → mDataDisplay → DrawLine1
-    // 血糖(GLU) → mValueDisplay → DrawLine2
+
+    /**
+     *  数据提取与绘图核心代码
+     *  尿酸(URI) → mDataDisplay → DrawLine1
+     *  血糖(GLU) → mValueDisplay → DrawLine2
+     * **/
     private void parseSensorData(String dataString) {
         try {
-            Pattern pattern = Pattern.compile("URI=([0-9]+\\.[0-9]+),GLU=([0-9]+\\.[0-9]+)");   // 正则表达式提取URI和GLU的浮点数值
+            Pattern pattern = Pattern.compile("URI_RAW=(\\d+),GLU_RAW=(\\d+)");   // 正则表达式提取尿酸和葡萄糖传感数据的ADC采样值
             Matcher matcher = pattern.matcher(dataString);
 
+            //数据缓存与软件UI更新
             if (matcher.find() && matcher.groupCount() == 2) {
-                float uriValue = Float.parseFloat(matcher.group(1));    // Group 1：原始URI值
-                float gluValue = Float.parseFloat(matcher.group(2));    // Group 2：原始GLU值
-
+                float uriValue = Float.parseFloat(matcher.group(1));    // Group 1：原始URI的ADC采集值
+                float gluValue = Float.parseFloat(matcher.group(2));    // Group 2：原始GLU的ADC采集值
                 Log.d(TAG, String.format("解析成功: URI=%.3f, GLU=%.3f", uriValue, gluValue));
 
                 // 使用DataProcessor处理和缓存数据
@@ -430,25 +445,25 @@ public class Recdata extends AppCompatActivity {
 
                     // ============ 0.选择数据源进行绘图 ============
                     // a.使用原始数据绘制曲线（取消下面的注释，并注释掉方法b）
-                    float uriToPlot = uriValue;
+/*                    float uriToPlot = uriValue;
                     float gluToPlot = gluValue;
-                    Log.d(TAG, String.format("使用原始数据绘图: URI=%.3f, GLU=%.3f", uriToPlot, gluToPlot));
+                    Log.d(TAG, String.format("使用原始数据绘图: URI=%.3f, GLU=%.3f", uriToPlot, gluToPlot));*/
 
                     // b.使用处理后的数据绘制曲线（取消下面的注释，并注释掉方法a）
-/*                    float uriToPlot = processedUri;
+                    float uriToPlot = processedUri;
                     float gluToPlot = processedGlu;
-                    Log.d(TAG, String.format("使用处理后数据绘图: URI=%.3f, GLU=%.3f", uriToPlot, gluToPlot));*/
+                    Log.d(TAG, String.format("使用处理后数据绘图: URI=%.2f, GLU=%.2f", uriToPlot, gluToPlot));
                     // ============ 0.选择数据源进行绘图 ============
 
                     //步骤0和1要对应分别同步进行注释/解注
 
                     // ============ 1.文本显示 ============
                     // 取消注释,使用原始数据显示
-                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.3f", uriValue));
-                    mValueDisplay.setText(String.format(Locale.getDefault(), "%.3f", gluValue));
+/*                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.2f", uriValue));
+                    mValueDisplay.setText(String.format(Locale.getDefault(), "%.2f", gluValue));*/
                     // 取消注释,使用处理后数据显示
-/*                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.3f", processedUri));
-                    mValueDisplay.setText(String.format(Locale.getDefault(), "%.3f", processedGlu));*/
+                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.2f", processedUri));
+                    mValueDisplay.setText(String.format(Locale.getDefault(), "%.2f", processedGlu));
                     // ============ 1.文本显示 ============
 
                     // 2. 更新数据队列 - URI队列用于DrawLine1，GLU队列用于DrawLine2
@@ -460,9 +475,9 @@ public class Recdata extends AppCompatActivity {
                     mDrawLine2.addDataPoint(uriToPlot, seconds);
 
                     // ============ 缓存数据用于后续分析 ============
-                    // 始终缓存原始数据，便于后续分析和回滚
-                    updateDataQueue(mUriCacheQueue, uriValue, MAX_CACHE_POINTS);
-                    updateDataQueue(mGluCacheQueue, gluValue, MAX_CACHE_POINTS);
+                    // 缓存原始数据，便于后续分析和回滚
+/*                    updateDataQueue(mUriCacheQueue, uriValue, MAX_CACHE_POINTS);
+                    updateDataQueue(mGluCacheQueue, gluValue, MAX_CACHE_POINTS);*/
                     // 缓存处理后的数据
                     updateDataQueue(mProcessedUriDataQueue, processedUri, MAX_CACHE_POINTS);
                     updateDataQueue(mProcessedGluDataQueue, processedGlu, MAX_CACHE_POINTS);
@@ -473,8 +488,8 @@ public class Recdata extends AppCompatActivity {
                     mDrawLine2.setAutoAdjustRange(true);
 
                     // ============ 添加数据日志 ============
-                    Log.d(TAG, String.format("数据对比 - 原始URI:%.3f, 处理URI:%.3f", uriValue, processedUri));
-                    Log.d(TAG, String.format("数据对比 - 原始GLU:%.3f, 处理GLU:%.3f", gluValue, processedGlu));
+                    Log.d(TAG, String.format("数据对比 - 原始URI:%.2f, 处理URI:%.2f", uriValue, processedUri));
+                    Log.d(TAG, String.format("数据对比 - 原始GLU:%.2f, 处理GLU:%.2f", gluValue, processedGlu));
                 });
             } else {
                 Log.w(TAG, "数据格式不匹配: " + dataString);
