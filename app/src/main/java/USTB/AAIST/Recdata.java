@@ -462,8 +462,8 @@ public class Recdata extends AppCompatActivity {
 /*                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.2f", uriValue));
                     mValueDisplay.setText(String.format(Locale.getDefault(), "%.2f", gluValue));*/
                     // 取消注释,使用处理后数据显示
-                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.2f", processedUri));
-                    mValueDisplay.setText(String.format(Locale.getDefault(), "%.2f", processedGlu));
+                    mDataDisplay.setText(String.format(Locale.getDefault(), "%.1f", processedUri));
+                    mValueDisplay.setText(String.format(Locale.getDefault(), "%.1f", processedGlu));
                     // ============ 1.文本显示 ============
 
                     // 2. 更新数据队列 - URI队列用于DrawLine1，GLU队列用于DrawLine2

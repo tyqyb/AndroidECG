@@ -6,7 +6,6 @@ import android.os.Bundle;
 import java.util.ArrayList;
 import USTB.AAIST.view.ECG_allData_View;
 import USTB.AAIST.view.WH_ECGView;
-import android.nfc.Tag;
 import android.util.Log;
 
 public class OfflineRateActivity extends AppCompatActivity {
@@ -34,25 +33,6 @@ public class OfflineRateActivity extends AppCompatActivity {
             data_source = (ArrayList<Double>) intent.getSerializableExtra("offline_ratedata");//主要绿色的键值名称要和ECGchart中的Intent键值名称一致，否则拿不到数据
             orginate_data_source= (ArrayList<Double>) intent.getSerializableExtra("offline_orginateratedata");
 
-            //验证接收到的数据非空20240801
-            //Log.i(TAG,"data_source 是否为空" + data_source.size());
-            //Log.i(TAG,"orginate_data_source 是否为空" + orginate_data_source.size());
-
-//            System.out.println("data_source.toString()");
-//            System.out.println(data_source.toString());
-//            System.out.println("data_source:"+data_source.size());
-
-            //20240717解除以下两行注释，可能预见的冲突，在ECG中调用完后还会继续弹出
-//            String path= FileUtils.getFilesPath(OfflineRateActivity.this);
-//            String orginatepath = FileUtils.getOrginateFilesPath(OfflineRateActivity.this,edit.getText().toString());
-
-//            for(int i=0;i<orginate_data_source.size();i++){
-//                FileUtils.orginatewrite(orginatepath,orginate_data_source.get(i)+",\n");
-//            }
-//            //滤波信号
-//            for(int i=0;i<data_source.size();i++){
-//                FileUtils.write(path,data_source.get(i)+",\n");
-//            }
             Log.e(TAG, "判断Data—source:"+ data_source.size());
             ecgView.setData(data_source);
             allData_view.setData(data_source);

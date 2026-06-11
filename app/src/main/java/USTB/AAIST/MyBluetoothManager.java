@@ -1,37 +1,33 @@
 package USTB.AAIST;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 import android.bluetooth.BluetoothGattCallback;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import java.util.UUID;
 
 public class MyBluetoothManager {
     // 单例实例
     private static MyBluetoothManager instance;
     private String deviceAddress; // 添加设备地址存储
-    private static final String TAG = "MyBluetoothManager";
+    private static final String TAG = "MyBluetoothManagerJava";
     public static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 1001; // 可以是任意唯一整数
     private BluetoothGattCallback bluetoothGattCallback;
+    
     // 实例变量
     private BLE bleInstance;
     private boolean isConnected = false;
     private BluetoothGatt bluetoothGatt;
     private Context context; // 添加Context引用
     private BluetoothDevice bluetoothDevice;// 新增存储BluetoothDevice对象
-    private BluetoothGattCallback mGattCallback;
     private BluetoothGattCallback mExternalCallback;
+    //private BluetoothGattCallback mGattCallback;
 
     // 添加公共方法检查连接状态
     public boolean isConnected() {
@@ -137,5 +133,4 @@ public class MyBluetoothManager {
     public boolean isDeviceConnected() {
         return isConnected && deviceAddress != null && !deviceAddress.isEmpty();
     }
-
 }

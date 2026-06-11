@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sensor App</string>
+    <string name="main_ECG">ECG measurement</string>
+    <string name="main_Indicator">Biochemical parameters</string>
+    <string name="splash_introduction">The software is still under development...</string>
+
+    <string name="available_equipment">Available devices</string>
+    <string name="MAC">MAC Address</string>
+    <string name="search_device">Search for devices</string>
+    <string name="target_device">Target device: CH9141BLE</string>
+    <string name="refresh_list">Refresh list</string>
+    <string name="status">Status: Not connected</string>
+
+    <string name="receive_data">Receive data</string>
+    <string name="send_data">Send data</string>
+    <string name="status_flag">Status flag</string>
+
+    <string name="data_sent_successfully">Data sent successfully</string>
+    <string name="connecting">Connecting...</string>
+    <string name="connected">Connected！</string>
+    <string name="connection_succeeded">Connection successful</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="please_grant_app_permission">Please grant the app permission</string>
+
+    <string name="Indicator_monitoring">Real-time biochemical analysis</string>
+    <string name="GLU">Glucose in sweat:</string>
+    <string name="URI">Uric acid in sweat: </string>
+    <string name="GLU_REF">Reference range for glucose: 10 ~ 300 μM</string>
+    <string name="URI_REF">Reference range for uric acid: 20 ~ 100 μM</string>
+    <string name="Source_data">Source:Chemical Reviews,2023,123(8):5049-138.</string>
+
+    <string name="Receive_data">Data received: No data available</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="offline_data">Offline data</string>
+    <string name="offline_pic">Offline images</string>
+
+    <string name="navigation_icon_title1">Bluetooth</string>
+    <string name="navigation_icon_title2">Plotting</string>
+    <string name="navigation_icon_title3">Data</string>
+</resources>

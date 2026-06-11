@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="20dp"
             android:layout_marginTop="10dp"
-            android:text="MAC地址"
+            android:text="@string/MAC"
             android:textColor="@color/black"
             android:textSize="16sp" />
     </LinearLayout>
@@ -118,7 +118,7 @@
             android:id="@+id/button_refresh"
             android:background="@null"
             android:layout_marginLeft="3dp"
-            android:text="刷新列表"
+            android:text="@string/refresh_list"
             android:textAlignment="textStart"
             android:textColor="@color/black"
             android:textSize="16sp" />
@@ -128,10 +128,10 @@
     <TextView
         android:id="@+id/tv_state"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="29dp"
         android:layout_gravity="center"
         android:paddingBottom="8dp"
-        android:text="状态: 未连接"
+        android:text="@string/status"
         android:textSize="16sp" />
 
 </LinearLayout>

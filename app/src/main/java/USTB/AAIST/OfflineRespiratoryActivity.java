@@ -28,7 +28,7 @@ public class OfflineRespiratoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_offline_respiratory);
+       // setContentView(R.layout.activity_offline_respiratory);
         Intent intent = getIntent();
         //if ("action".equals(intent.getAction())) {
             cECG_Wave_RemoveRe_ReomvePowerLine_RemoveHFN = (ArrayList<Double>) intent.getSerializableExtra("offline_Respiratorydata");
@@ -91,8 +91,8 @@ public class OfflineRespiratoryActivity extends AppCompatActivity {
            Log.d("ArrayList", res.toString());
 
          //   ecgView = (WH_ECGView)findViewById(R.id.ecg_data_ecgView2);
-            Respiratory_View_offline =  findViewById(R.id.respiratory_view_offline);
-           Respiratory_allData_View=findViewById(R.id.respiratory_allData_view);
+            //Respiratory_View_offline =  findViewById(R.id.respiratory_view_offline);
+           //Respiratory_allData_View=findViewById(R.id.respiratory_allData_view);
             Respiratory_View_offline.setData(res);
             Respiratory_allData_View.setData(res);
 

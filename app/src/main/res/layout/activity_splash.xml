@@ -15,8 +15,8 @@
         android:layout_below="@id/liner0"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="145dp"
-        android:layout_marginEnd="45dp"
-        android:text="软件还在施工中..."
+        android:layout_marginEnd="41dp"
+        android:text="@string/splash_introduction"
         android:textColor="@color/gray"
         android:textSize="25dp" />
 
@@ -57,5 +57,4 @@
             android:textSize="70dp"
             android:textStyle="bold" />
     </LinearLayout>
-
 </RelativeLayout>

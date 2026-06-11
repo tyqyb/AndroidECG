@@ -7,14 +7,14 @@ public class DataProcessor {
     // 尿酸 (URI) 参数
     private static final float VREF_URI = 3.3f;          // ADC 参考电压 (V)
     private static final float VZERO_URI = 1.65f;        // LMP91000 内部零点电压 (V) 例如 50% VDD
-    private static final float RTIA_URI = 2750.0f;      // TIA跨阻增益电阻 (Ω)
-    private static final float B_URI = 5.0e-8f;          // 拟合截距 (A) 例如 50 nA
-    private static final float K_URI = 1.69e-7f;         // 拟合斜率 A/(mmol/L) 例如 169 nA/(mmol/L)
+    private static final float RTIA_URI = 3.5e5f;        // TIA跨阻增益电阻 (Ω)
+    private static final float B_URI = 6.5e-7f;          // 拟合截距 (A) 例如 50 nA
+    private static final float K_URI = 1.582e-7f;        // 拟合斜率 A/(mmol/L) 例如 169 nA/(mmol/L)
 
     // 汗糖 (GLU) 参数
     private static final float VREF_GLU = 3.3f;
     private static final float VZERO_GLU = 1.65f;
-    private static final float RTIA_GLU = 2750.0f;
+    private static final float RTIA_GLU = 3.5e5f;
     private static final float B_GLU = 1.51e-6f;
     private static final float K_GLU = 2.108e-5f;
 
@@ -42,9 +42,15 @@ public class DataProcessor {
         float concentrationUri = calculateConcentration(uriValue, VREF_URI, VZERO_URI, RTIA_URI, B_URI, K_URI, CURRENT_DIRECTION_OUT);
         // 3. 计算汗糖浓度
         float concentrationGlu = calculateConcentration(gluValue, VREF_GLU, VZERO_GLU, RTIA_GLU, B_GLU, K_GLU, CURRENT_DIRECTION_OUT);
-        // 4. 缓存计算结果
-        cacheData(processedUriCache, concentrationUri);
-        cacheData(processedGluCache, concentrationGlu);
+        // 4. 取绝对值，避免负浓度
+        float absConcentrationUri = Math.abs(concentrationUri);
+        float absConcentrationGlu = Math.abs(concentrationGlu);
+        // 5. 缓存计算结果（绝对值）
+        cacheData(processedUriCache, absConcentrationUri);
+        cacheData(processedGluCache, absConcentrationGlu);
+        // 4. 缓存非绝对值计算结果
+        //cacheData(processedUriCache, concentrationUri);
+        //cacheData(processedGluCache, concentrationGlu);
     }
 
     /**
@@ -97,7 +103,7 @@ public class DataProcessor {
 
     // 可以添加更多数据处理方法
     public float[] applyCustomProcessing(float[] data, ProcessingAlgorithm algorithm) {
-        // 这里可以添加更复杂的数据处理算法
+        // 这里可以添加更复杂的数据处理算法，如基线校准，温度补偿校准、响应时间校准、线性响应校准、湿度和干扰物响应补偿校准
         float[] result = new float[data.length];
         for (int i = 0; i < data.length; i++) {
             result[i] = algorithm.process(data[i]);

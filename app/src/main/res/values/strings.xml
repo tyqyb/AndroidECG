@@ -1,19 +1,21 @@
 <resources>
     <string name="app_name">传感APP</string>
-
     <string name="main_ECG">心电测量</string>
-    <string name="main_Spo2">血氧监测</string>
-    <string name="main_oxygen">血氧脉搏监测</string>
-    <string name="main_EEG">脑电测量</string>
-    <string name="main_EMG">肌电测量</string>
-    <string name="main_EOG">眼电测量</string>
+    <string name="main_Indicator">生化指标</string>
+    <string name="splash_introduction">软件还在施工中...</string>
+
+    <string name="available_equipment">设备名称</string>
+    <string name="MAC">MAC地址</string>
     <string name="search_device">搜索设备</string>
     <string name="target_device">目标设备：CH9141BLE</string>
+    <string name="refresh_list">刷新列表</string>
+    <string name="status">状态：未连接</string>
+
     <string name="receive_data">接收数据</string>
     <string name="send_data">发送数据</string>
     <string name="status_flag">状态标记</string>
-    <string name="disconnect">断开连接</string>
-    <string name="available_equipment">可用设备</string>
+
+
     <string name="data_sent_successfully">数据发送成功</string>
     <string name="connecting">正在连接</string>
     <string name="connected">已连接</string>
@@ -21,10 +23,21 @@
     <string name="connection_failed">连接失败</string>
     <string name="please_grant_app_permission">请授予应用权限</string>
 
+    <string name="Indicator_monitoring">生化指标实时检测</string>
+    <string name="GLU">汗糖：</string>
+    <string name="URI">尿酸：</string>
+    <string name="GLU_REF">汗糖参考范围：10 ~ 300 μM</string>
+    <string name="URI_REF">尿酸参考范围：20 ~ 100 μM</string>
+    <string name="Source_data">数据来源：Chemical Reviews,2023,123(8):5049-138.</string>
+
+    <string name="Receive_data">接收数据: 暂无数据</string>
+    <string name="disconnect">断开连接</string>
+    <string name="offline_data">离线数据</string>
+    <string name="offline_pic">离线图片</string>
+
+
     <string name="navigation_icon_title1">蓝牙</string>
     <string name="navigation_icon_title2">绘图</string>
     <string name="navigation_icon_title3">数据</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Android MotionLayout 运动场景（MotionScene）配置文件，用于定义两个布局状态（ConstraintSet）之间的过渡动画（例如图标移动、缩放、淡入淡出）-->
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+    <!--旋转缩放刷新动画-->
+    <Transition
+        motion:constraintSetStart="@id/start"
+        motion:constraintSetEnd="@+id/end"
+        motion:duration="600"
+        motion:interpolator="easeInOut">
+        <KeyFrameSet />
+    </Transition>
+    <!-- 初始状态：图标原始大小，不旋转 -->
+    <ConstraintSet android:id="@+id/start">
+        <Constraint
+            android:id="@+id/refresh_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            motion:layout_constraintLeft_toLeftOf="parent"
+            motion:layout_constraintRight_toRightOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            android:rotation="0"
+            android:scaleX="1"
+            android:scaleY="1" />
+    </ConstraintSet>
+    <!-- 结束状态：旋转360度，同时放大1.2倍，模拟刷新时的动感 -->
+    <ConstraintSet android:id="@+id/end">
+        <Constraint
+            android:id="@+id/refresh_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            motion:layout_constraintLeft_toLeftOf="parent"
+            motion:layout_constraintRight_toRightOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            android:rotation="360"
+            android:scaleX="1.2"
+            android:scaleY="1.2" />
+    </ConstraintSet>
+
+    <!--弹性脉冲刷新动画-->
+    <Transition
+        motion:constraintSetStart="@id/start"
+        motion:constraintSetEnd="@+id/end"
+        motion:duration="800"
+        motion:interpolator="easeInOut">
+
+        <KeyFrameSet>
+            <!-- 在动画进行到 50% 时，图标放大1.5倍、旋转180度、半透明，产生弹性冲击感 -->
+            <KeyAttribute
+                motion:motionTarget="@id/refresh_icon"
+                motion:framePosition="50"
+                android:scaleX="1.5"
+                android:scaleY="1.5"
+                android:rotation="180"
+                android:alpha="0.5" />
+        </KeyFrameSet>
+    </Transition>
+    <!-- 初始状态：正常大小、不旋转、完全不透明 -->
+    <ConstraintSet android:id="@+id/start_bounce">
+        <Constraint
+            android:id="@+id/refresh_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            motion:layout_constraintLeft_toLeftOf="parent"
+            motion:layout_constraintRight_toRightOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            android:rotation="0"
+            android:scaleX="1"
+            android:scaleY="1"
+            android:alpha="1" />
+    </ConstraintSet>
+    <!-- 结束状态：旋转完整一周，恢复原始大小和透明度，完成一次脉冲刷新 -->
+    <ConstraintSet android:id="@+id/end_bounce">
+        <Constraint
+            android:id="@+id/refresh_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            motion:layout_constraintLeft_toLeftOf="parent"
+            motion:layout_constraintRight_toRightOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            android:rotation="360"
+            android:scaleX="1"
+            android:scaleY="1"
+            android:alpha="1" />
+    </ConstraintSet>
+
+</MotionScene>

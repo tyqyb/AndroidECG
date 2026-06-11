@@ -63,7 +63,7 @@ public class OxgenChartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_oxgen_chart);
+        //setContentView(R.layout.activity_oxgen_chart);
         conBlebtn = findViewById(R.id.btn);
 //        recTxt = findViewById(R.id.rec);
         //可删除后续

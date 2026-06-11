@@ -43,13 +43,13 @@
         <activity
             android:name=".MainActivity2"
             android:exported="false" />
-        <activity
+<!--        <activity
             android:name=".OfflineRespiratoryActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
-        </activity>
+        </activity>-->
         <activity
             android:name=".OfflineRateActivity"
             android:exported="false">
@@ -64,14 +64,14 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-        <activity
+<!--        <activity
             android:name=".OxgenChartActivity"
             android:exported="false"
             android:screenOrientation="landscape">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
-        </activity>
+        </activity>-->
         <activity
             android:name=".ECGChart"
             android:exported="false"
