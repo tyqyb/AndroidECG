@@ -2,11 +2,11 @@
 
 ## 一、整体预览
 
-本软件项目是为适配本人研究生课题而做的Android版本手机APP以实现第二部分的预期功能，需要适配硬件（后续完善）。
+本软件项目是为适配本人研究生课题而做的Android版本手机APP以实现第二部分的预期功能，需要适配硬件检测项目使用（已完善）。注：下文中更详细的设计内容请参考本人的硕士论文相关章节（后续挂到Github）
 
 本项目所用的开发工具为Android Studio（Version：Koala）；Gradle构建版本：8.3；Target SDK Version：34（Android 14.0）；Min SDK Version：31（Android 12.0）；
 
-现在花费太多时间在UI设计上对于整个小项目的推进是来不及的，同时还有其他事情要做（实验、硬件等），所以UI上显得粗制滥造了些，功能简单所以UI页面也十分的简洁...
+现在花费太多时间在UI设计上对于整个小项目的推进是来不及的，同时还有其他事情要做（发电器件与汗液检测实验、检测硬件等），所以UI上显得粗制滥造了些，功能简单所以UI页面也十分的简洁...
 
 <img src=".\ReadmePic\0.jpg" alt="Splash" style="zoom:20%;" /><img src=".\ReadmePic\1.jpg" alt="SearchBLE" style="zoom:20%;" /><img src=".\ReadmePic\2.jpg" alt="SearchBLEList" style="zoom:20%;" />
 
@@ -786,9 +786,13 @@ public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 3. **用户引导机制**
    - 未连接时明确提示 "请先连接蓝牙设备"
    - 提供快捷入口（菜单项）进入蓝牙连接页
-4. **模块化页面跳转**
+4. **模块化页面跳转与核心功能函数**
+
+
 
 ![](.\ReadmePic\liucheng.png)
+
+![](.\ReadmePic\5.png)
 
 ### 数据接收页面（Recdata）
 

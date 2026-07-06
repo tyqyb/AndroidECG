@@ -16,10 +16,9 @@ public class MyBluetoothManager {
     // 单例实例
     private static MyBluetoothManager instance;
     private String deviceAddress; // 添加设备地址存储
-    private static final String TAG = "MyBluetoothManagerJava";
+    private static final String TAG = "MyBluetoothManager";
     public static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 1001; // 可以是任意唯一整数
     private BluetoothGattCallback bluetoothGattCallback;
-    
     // 实例变量
     private BLE bleInstance;
     private boolean isConnected = false;
@@ -27,6 +26,7 @@ public class MyBluetoothManager {
     private Context context; // 添加Context引用
     private BluetoothDevice bluetoothDevice;// 新增存储BluetoothDevice对象
     private BluetoothGattCallback mExternalCallback;
+
     //private BluetoothGattCallback mGattCallback;
 
     // 添加公共方法检查连接状态
